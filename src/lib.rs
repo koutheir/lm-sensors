@@ -1,6 +1,12 @@
 /*!
 # Hardware monitoring in Linux based on LM Sensors
 
+`lm-sensors` provides user-space support for the hardware monitoring drivers
+in Linux.
+
+This crate is Linux-specific. Building it for non-Linux platforms, or for
+the Linux kernel, results in an empty crate.
+
 ## Listing all available sensors
 
 ```
