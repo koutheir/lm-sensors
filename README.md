@@ -42,7 +42,6 @@ for chip in sensors.chip_iter(None) {
         }
     }
 }
-# Ok::<(), lm_sensors::errors::Error>(())
 ```
 
 The following is an example output of the sample above:
@@ -188,13 +187,9 @@ use lm_sensors::prelude::*;
 let sensors = lm_sensors::Initializer::default()
     .config_path("/dev/null")
     .initialize()?;
-
-# Ok::<(), lm_sensors::errors::Error>(())
 ```
 
 ```rust
-# use std::fs::File;
-#
 // Import all useful traits of this crate.
 use lm_sensors::prelude::*;
 
@@ -204,8 +199,6 @@ let config_file = File::open("/dev/null").unwrap();
 let sensors = lm_sensors::Initializer::default()
     .config_file(config_file)
     .initialize()?;
-
-# Ok::<(), lm_sensors::errors::Error>(())
 ```
 
 ### Setting custom error reporting
@@ -239,8 +232,6 @@ impl lm_sensors::errors::Listener for EL {
 let sensors = lm_sensors::Initializer::default()
     .error_listener(Box::new(EL))
     .initialize()?;
-
-# Ok::<(), lm_sensors::errors::Error>(())
 ```
 
 ## Versioning
