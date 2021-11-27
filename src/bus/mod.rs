@@ -67,12 +67,12 @@ pub trait SharedBus: AsRef<sensors_bus_id> {
 pub trait ExclusiveBus: AsMut<sensors_bus_id> {
     /// Set the bus type.
     fn set_kind(&mut self, kind: Kind) {
-        self.set_raw_kind(kind as c_short)
+        self.set_raw_kind(c_short::from(kind));
     }
 
     /// Set the bus number.
     fn set_number(&mut self, number: Number) {
-        self.set_raw_number(number.into())
+        self.set_raw_number(number.into());
     }
 
     /// Set the bus type to one of `SENSORS_BUS_TYPE_*` values,
@@ -117,7 +117,7 @@ impl fmt::Display for Bus {
         if let Ok(name) = self.raw_name() {
             write!(f, "{}", name.to_string_lossy())
         } else {
-            write!(f, "�")
+            write!(f, "\u{fffd}")
         }
     }
 }
@@ -148,7 +148,7 @@ impl<'a> fmt::Display for BusRef<'a> {
         if let Ok(name) = self.raw_name() {
             write!(f, "{}", name.to_string_lossy())
         } else {
-            write!(f, "�")
+            write!(f, "\u{fffd}")
         }
     }
 }
@@ -157,13 +157,13 @@ impl<'a> SharedBus for BusRef<'a> {}
 
 impl<'a> AsMut<sensors_bus_id> for BusMut<'a> {
     fn as_mut(&mut self) -> &mut sensors_bus_id {
-        &mut self.0
+        self.0
     }
 }
 
 impl<'a> AsRef<sensors_bus_id> for BusMut<'a> {
     fn as_ref(&self) -> &sensors_bus_id {
-        &*self.0
+        self.0
     }
 }
 
@@ -184,7 +184,7 @@ impl<'a> fmt::Display for BusMut<'a> {
         if let Ok(name) = self.raw_name() {
             write!(f, "{}", name.to_string_lossy())
         } else {
-            write!(f, "�")
+            write!(f, "\u{fffd}")
         }
     }
 }
@@ -232,12 +232,14 @@ pub enum Kind {
 impl Kind {
     /// Return an instance from one of the `SENSORS_BUS_TYPE_*` values,
     /// *e.g.,* [`SENSORS_BUS_TYPE_PCI`].
+    #[must_use]
     pub fn from_raw(kind: c_short) -> Option<Self> {
         Self::try_from(kind).ok()
     }
 
     /// Return one of the `SENSORS_BUS_TYPE_*` values
     /// (*e.g.,* [`SENSORS_BUS_TYPE_PCI`]) equivalent to this instance.
+    #[must_use]
     pub fn as_raw(self) -> c_short {
         self.into()
     }
@@ -251,7 +253,7 @@ impl Default for Kind {
 
 impl fmt::Display for Kind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
+        match *self {
             Self::Any => write!(f, "Any"),
             Self::I2C => write!(f, "Inter-Integrated Circuit (I2C)"),
             Self::ISA => write!(f, "Industry Standard Architecture (ISA)"),
@@ -286,7 +288,7 @@ impl Default for Number {
 
 impl From<c_short> for Number {
     fn from(other: c_short) -> Self {
-        match other as c_int {
+        match c_int::from(other) {
             SENSORS_BUS_NR_ANY => Number::Any,
             SENSORS_BUS_NR_IGNORE => Number::Ignore,
             _ => Number::Number(other),
@@ -306,7 +308,7 @@ impl From<Number> for c_short {
 
 impl fmt::Display for Number {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
+        match *self {
             Number::Any => write!(f, "Any"),
             Number::Ignore => write!(f, "Ignore"),
             Number::Number(n) => write!(f, "{}", n),

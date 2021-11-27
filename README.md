@@ -175,65 +175,6 @@ chip: nvme-pci-0200 at PCI adapter (/sys/class/hwmon/hwmon1)
         temp3_min: -273.15
 ```
 
-## Custom configuration and behavior of LM sensors library
-
-### Loading a custom configuration file
-
-```rust
-// Import all useful traits of this crate.
-use lm_sensors::prelude::*;
-
-// Initialize LM sensors library with a custom configuration file.
-let sensors = lm_sensors::Initializer::default()
-    .config_path("/dev/null")
-    .initialize()?;
-```
-
-```rust
-// Import all useful traits of this crate.
-use lm_sensors::prelude::*;
-
-let config_file = File::open("/dev/null").unwrap();
-
-// Initialize LM sensors library with a custom configuration file.
-let sensors = lm_sensors::Initializer::default()
-    .config_file(config_file)
-    .initialize()?;
-```
-
-### Setting custom error reporting
-
-```rust
-// Import all useful traits of this crate.
-use lm_sensors::prelude::*;
-
-#[derive(Debug)]
-struct EL;
-
-impl lm_sensors::errors::Listener for EL {
-    fn on_lm_sensors_config_error(&self, error: &str,
-        file_name: Option<&std::path::Path>, line_number: usize)
-    {
-        if let Some(file_name) = file_name {
-            eprintln!("[ERROR] lm-sensors config: {} @{}:{}",
-                      error, file_name.display(), line_number);
-        } else {
-            eprintln!("[ERROR] lm-sensors config: {} @<config>:{}",
-                      error, line_number);
-        }
-    }
-
-    fn on_lm_sensors_fatal_error(&self, error: &str, procedure: &str) {
-        eprintln!("[FATAL] lm-sensors: {} @{}", error, procedure);
-    }
-}
-
-// Initialize LM sensors library with custom error reporting.
-let sensors = lm_sensors::Initializer::default()
-    .error_listener(Box::new(EL))
-    .initialize()?;
-```
-
 ## Versioning
 
 This project adheres to [Semantic Versioning].

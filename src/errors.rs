@@ -78,11 +78,10 @@ impl Error {
         let description =
             lossy_string_from_c_str(unsafe { sensors_sys::sensors_strerror(number) }, "")
                 .into_owned();
-        let number = c_int::abs(number);
 
         Error::LMSensors {
             operation,
-            number,
+            number: c_int::abs(number),
             description,
         }
     }
@@ -136,17 +135,16 @@ impl Listener for DefaultListener {
     }
 }
 
-static ERROR_LISTENER: AtomicPtr<Box<dyn crate::errors::Listener>> =
-    AtomicPtr::new(ptr::null_mut());
+static ERROR_LISTENER: AtomicPtr<Box<dyn Listener>> = AtomicPtr::new(ptr::null_mut());
 
 #[derive(Debug)]
 pub(crate) struct Reporter {
-    previous_error_listener: *mut Box<dyn crate::errors::Listener>,
+    previous_error_listener: *mut Box<dyn Listener>,
     previous_call_backs: CallBacks,
 }
 
 impl Reporter {
-    pub(crate) fn new(error_listener: *mut Box<dyn crate::errors::Listener>) -> Self {
+    pub(crate) fn new(error_listener: *mut Box<dyn Listener>) -> Self {
         let call_backs =
             CallBacks::new(Self::parse_error, Self::parse_error_wfn, Self::fatal_error);
 
@@ -159,13 +157,13 @@ impl Reporter {
         }
     }
 
-    pub(crate) fn restore(&self) -> *mut Box<dyn crate::errors::Listener> {
+    pub(crate) fn restore(&self) -> *mut Box<dyn Listener> {
         unsafe { self.previous_call_backs.set() };
         ERROR_LISTENER.swap(self.previous_error_listener, atomic::Ordering::AcqRel)
     }
 
     extern "C" fn parse_error(err: *const c_char, line_number: c_int) {
-        Self::parse_error_wfn(err, ptr::null(), line_number)
+        Self::parse_error_wfn(err, ptr::null(), line_number);
     }
 
     extern "C" fn parse_error_wfn(err: *const c_char, file_name: *const c_char, line_no: c_int) {
@@ -173,11 +171,8 @@ impl Reporter {
         let file_name = path_from_c_str(file_name);
         let line_number = cmp::max(line_no, 1) as usize;
 
-        let listener = ERROR_LISTENER.load(atomic::Ordering::Acquire);
-        let listener = unsafe { listener.as_ref() }.map_or(
-            &crate::errors::DefaultListener as &dyn crate::errors::Listener,
-            |v| &**v,
-        );
+        let listener = unsafe { ERROR_LISTENER.load(atomic::Ordering::Acquire).as_ref() }
+            .map_or(&crate::errors::DefaultListener as &dyn Listener, |v| &**v);
 
         listener.on_lm_sensors_config_error(&error, file_name, line_number);
     }
@@ -186,11 +181,8 @@ impl Reporter {
         let procedure = str_from_c_str(procedure).unwrap_or("<unknown-procedure>");
         let error = lossy_string_from_c_str(err, "<unknown-error>");
 
-        let listener = ERROR_LISTENER.load(atomic::Ordering::Acquire);
-        let listener = unsafe { listener.as_ref() }.map_or(
-            &crate::errors::DefaultListener as &dyn crate::errors::Listener,
-            |v| &**v,
-        );
+        let listener = unsafe { ERROR_LISTENER.load(atomic::Ordering::Acquire).as_ref() }
+            .map_or(&crate::errors::DefaultListener as &dyn Listener, |v| &**v);
 
         listener.on_lm_sensors_fatal_error(&error, procedure);
         process::abort();

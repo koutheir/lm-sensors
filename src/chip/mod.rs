@@ -28,9 +28,7 @@ impl<'a> Iterator for Iter<'a> {
 
     /// See: [`sensors_get_detected_chips`].
     fn next(&mut self) -> Option<Self::Item> {
-        let match_pattern = self
-            .match_pattern
-            .map_or_else(ptr::null, |c| c.as_ref() as *const _);
+        let match_pattern = self.match_pattern.map_or_else(ptr::null, |c| c.as_ref());
 
         api_access_lock()
             .lock()
@@ -104,7 +102,7 @@ pub trait SharedChip: AsRef<sensors_chip_name> + PartialEq<Self> {
             if result < 0 {
                 (result, Vec::default())
             } else {
-                let mut buffer = vec![0_u8; 1 + (result as usize)];
+                let mut buffer = vec![0_u8; (result as usize).saturating_add(1)];
                 let result = unsafe {
                     sensors_snprintf_chip_name(
                         buffer.as_mut_ptr().cast(),
@@ -179,7 +177,7 @@ impl<'a> fmt::Display for ChipRef<'a> {
         if let Ok(name) = self.raw_name() {
             write!(f, "{}", name.to_string_lossy())
         } else {
-            write!(f, "�")
+            write!(f, "\u{fffd}")
         }
     }
 }
@@ -189,6 +187,7 @@ impl<'a> Chip<'a> {
     /// It is the responsibility of the caller to call
     /// [`sensors_free_chip_name`] on the result.
     /// Failing to do so leaks memory.
+    #[must_use]
     pub fn into_raw_parts(self) -> sensors_chip_name {
         let raw = self.raw;
         mem::forget(self);
@@ -196,6 +195,7 @@ impl<'a> Chip<'a> {
     }
 
     /// Return a shared reference to this chip.
+    #[must_use]
     pub fn as_ref(&self) -> ChipRef {
         ChipRef(&self.raw)
     }
@@ -274,7 +274,7 @@ impl<'a> fmt::Display for Chip<'a> {
         if let Ok(name) = self.raw_name() {
             write!(f, "{}", name.to_string_lossy())
         } else {
-            write!(f, "�")
+            write!(f, "\u{fffd}")
         }
     }
 }

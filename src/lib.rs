@@ -9,7 +9,7 @@ the Linux kernel, results in an empty crate.
 
 ## Listing all available sensors
 
-```
+```rust
 // Import all useful traits of this crate.
 use lm_sensors::prelude::*;
 
@@ -173,72 +173,12 @@ chip: nvme-pci-0200 at PCI adapter (/sys/class/hwmon/hwmon1)
         temp3_min: -273.15
 ```
 
-## Custom configuration and behavior of LM sensors library
+## Versioning
 
-### Loading a custom configuration file
+This project adheres to [Semantic Versioning].
+The `CHANGELOG.md` file details notable changes over time.
 
-```
-// Import all useful traits of this crate.
-use lm_sensors::prelude::*;
-
-// Initialize LM sensors library with a custom configuration file.
-let sensors = lm_sensors::Initializer::default()
-    .config_path("/dev/null")
-    .initialize()?;
-
-# Ok::<(), lm_sensors::errors::Error>(())
-```
-
-```
-# use std::fs::File;
-#
-// Import all useful traits of this crate.
-use lm_sensors::prelude::*;
-
-let config_file = File::open("/dev/null").unwrap();
-
-// Initialize LM sensors library with a custom configuration file.
-let sensors = lm_sensors::Initializer::default()
-    .config_file(config_file)
-    .initialize()?;
-
-# Ok::<(), lm_sensors::errors::Error>(())
-```
-
-### Setting custom error reporting
-
-```
-// Import all useful traits of this crate.
-use lm_sensors::prelude::*;
-
-#[derive(Debug)]
-struct EL;
-
-impl lm_sensors::errors::Listener for EL {
-    fn on_lm_sensors_config_error(&self, error: &str,
-        file_name: Option<&std::path::Path>, line_number: usize)
-    {
-        if let Some(file_name) = file_name {
-            eprintln!("[ERROR] lm-sensors config: {} @{}:{}",
-                      error, file_name.display(), line_number);
-        } else {
-            eprintln!("[ERROR] lm-sensors config: {} @<config>:{}",
-                      error, line_number);
-        }
-    }
-
-    fn on_lm_sensors_fatal_error(&self, error: &str, procedure: &str) {
-        eprintln!("[FATAL] lm-sensors: {} @{}", error, procedure);
-    }
-}
-
-// Initialize LM sensors library with custom error reporting.
-let sensors = lm_sensors::Initializer::default()
-    .error_listener(Box::new(EL))
-    .initialize()?;
-
-# Ok::<(), lm_sensors::errors::Error>(())
-```
+[Semantic Versioning]: https://semver.org/spec/v2.0.0.html
 */
 
 #![warn(missing_docs)]
@@ -246,6 +186,11 @@ let sensors = lm_sensors::Initializer::default()
 #![warn(clippy::all, clippy::pedantic, clippy::restriction)]
 #![allow(
     clippy::missing_docs_in_private_items,
+    clippy::wildcard_imports,
+    clippy::missing_inline_in_public_items,
+    clippy::implicit_return,
+    clippy::missing_errors_doc,
+    clippy::module_name_repetitions
 )]
 */
 
@@ -272,7 +217,7 @@ use std::{io, ptr};
 use sensors_sys::*;
 
 use crate::errors::{Error, Reporter, Result};
-use crate::utils::*;
+use crate::utils::{api_access_lock, LibCFileStream};
 
 pub mod prelude {
     //! Easily import crate traits.
@@ -453,8 +398,20 @@ pub struct LMSensors {
 }
 
 impl Initializer {
-    /// Set the path of the configuration file to be read during LM sensors
-    /// library initialization.
+    /**
+    Set the path of the configuration file to be read during LM sensors
+    library initialization.
+
+    # Example
+
+    ```rust
+    let sensors = lm_sensors::Initializer::default()
+        .config_path("/dev/null")
+        .initialize()?;
+    # Ok::<(), lm_sensors::errors::Error>(())
+    ```
+    */
+    #[must_use]
     pub fn config_path(self, path: impl Into<PathBuf>) -> Self {
         Self {
             error_listener: self.error_listener,
@@ -463,8 +420,22 @@ impl Initializer {
         }
     }
 
-    /// Set the configuration contents to be used during LM sensors
-    /// library initialization.
+    /**
+    Set the configuration contents to be used during LM sensors
+    library initialization.
+
+    # Example
+
+    ```rust
+    # use std::fs::File;
+    let config_file = File::open("/dev/null").unwrap();
+    let sensors = lm_sensors::Initializer::default()
+        .config_file(config_file)
+        .initialize()?;
+    # Ok::<(), lm_sensors::errors::Error>(())
+    ```
+    */
+    #[must_use]
     pub fn config_file(self, file: File) -> Self {
         Self {
             error_listener: self.error_listener,
@@ -473,8 +444,40 @@ impl Initializer {
         }
     }
 
-    /// Set the error listener to be used during LM sensors
-    /// library initialization.
+    /**
+    Set the error listener to be used during LM sensors library initialization.
+
+    # Example
+
+    ```rust
+    #[derive(Debug)]
+    struct EL;
+
+    impl lm_sensors::errors::Listener for EL {
+        fn on_lm_sensors_config_error(&self, error: &str,
+            file_name: Option<&std::path::Path>, line_number: usize)
+        {
+            if let Some(file_name) = file_name {
+                eprintln!("[ERROR] lm-sensors config: {} @{}:{}",
+                          error, file_name.display(), line_number);
+            } else {
+                eprintln!("[ERROR] lm-sensors config: {} @<config>:{}",
+                          error, line_number);
+            }
+        }
+
+        fn on_lm_sensors_fatal_error(&self, error: &str, procedure: &str) {
+            eprintln!("[FATAL] lm-sensors: {} @{}", error, procedure);
+        }
+    }
+
+    let sensors = lm_sensors::Initializer::default()
+        .error_listener(Box::new(EL))
+        .initialize()?;
+    # Ok::<(), lm_sensors::errors::Error>(())
+    ```
+    */
+    #[must_use]
     pub fn error_listener(self, listener: Box<dyn crate::errors::Listener>) -> Self {
         Self {
             error_listener: Some(listener),
@@ -483,7 +486,16 @@ impl Initializer {
         }
     }
 
-    /// Return an instance of a loaded and initialized LM sensors library.
+    /**
+    Return an instance of a loaded and initialized LM sensors library.
+
+    # Example
+
+    ```rust
+    let sensors = lm_sensors::Initializer::default().initialize()?;
+    # Ok::<(), lm_sensors::errors::Error>(())
+    ```
+    */
     pub fn initialize(self) -> Result<LMSensors> {
         let config_file_fp = match (self.config_path, self.config_file) {
             (None, None) => None,
@@ -510,11 +522,13 @@ static INITIALIZED: AtomicBool = AtomicBool::new(false);
 impl LMSensors {
     /// Returns the version of the LM sensors library,
     /// if available and valid UTF-8.
+    #[must_use]
     pub fn version(&self) -> Option<&str> {
         self.raw_version().and_then(|s| s.to_str().ok())
     }
 
     /// Returns the raw version of the LM sensors library, if available.
+    #[must_use]
     pub fn raw_version(&self) -> Option<&CStr> {
         let p = unsafe { libsensors_version };
         (!p.is_null()).then(move || unsafe { CStr::from_ptr(p) })
@@ -527,6 +541,7 @@ impl LMSensors {
     ///
     /// - The given [`sensors_chip_name`] reference must have been returned from
     ///   [`sensors_get_detected_chips`].
+    #[must_use]
     pub unsafe fn new_chip_ref<'a>(&'a self, chip: &'a sensors_chip_name) -> ChipRef<'a> {
         ChipRef(chip)
     }
@@ -537,6 +552,7 @@ impl LMSensors {
     ///
     /// - The given [`sensors_chip_name`] must have been previously initialized
     ///   by calling [`sensors_parse_chip_name`].
+    #[must_use]
     pub unsafe fn new_raw_chip(&'_ self, chip: sensors_chip_name) -> Chip<'_> {
         Chip {
             raw: chip,
@@ -550,6 +566,7 @@ impl LMSensors {
     }
 
     /// Return a new instance of [`Bus`], given a raw *(bus type, bus number)*.
+    #[must_use]
     pub fn new_raw_bus(&self, kind: c_short, number: c_short) -> Bus {
         Bus(sensors_bus_id {
             type_: kind,
@@ -558,26 +575,30 @@ impl LMSensors {
     }
 
     /// Return a new instance of [`Bus`], given a *(bus type, bus number)*.
+    #[must_use]
     pub fn new_bus(&self, kind: bus::Kind, number: bus::Number) -> Bus {
         Bus(sensors_bus_id {
-            type_: kind as c_short,
+            type_: c_short::from(kind),
             nr: number.into(),
         })
     }
 
     /// Return a new instance of [`BusRef`], given a shared reference
     /// to a raw bus.
+    #[must_use]
     pub fn new_bus_ref<'a>(&'a self, raw: &'a sensors_bus_id) -> BusRef<'a> {
         BusRef(raw)
     }
 
     /// Return a new instance of [`BusMut`], given an exclusive reference
     /// to a raw bus.
+    #[must_use]
     pub fn new_bus_mut<'a>(&'a self, raw: &'a mut sensors_bus_id) -> BusMut<'a> {
         BusMut(raw)
     }
 
     /// Return a new default instance of [`Bus`].
+    #[must_use]
     pub fn default_bus(&self) -> Bus {
         Bus(sensors_bus_id {
             type_: SENSORS_BUS_TYPE_ANY as c_short,
@@ -592,6 +613,7 @@ impl LMSensors {
     ///
     /// - The given [`sensors_feature`] reference must have been returned from
     ///   [`sensors_get_features`].
+    #[must_use]
     pub unsafe fn new_feature_ref<'a>(
         &'a self,
         chip: ChipRef<'a>,
@@ -608,6 +630,7 @@ impl LMSensors {
     /// - The given [`sensors_subfeature`] reference must have been returned
     ///   either from [`sensors_get_all_subfeatures`] or from
     ///   [`sensors_get_subfeature`].
+    #[must_use]
     pub unsafe fn new_sub_feature_ref<'a>(
         &'a self,
         feature: FeatureRef<'a>,
@@ -619,6 +642,7 @@ impl LMSensors {
     /// Return an iterator which yields all chips matching the given pattern.
     ///
     /// Specifying `None` for the `match_pattern` yields all chips.
+    #[must_use]
     pub fn chip_iter<'a>(&'a self, match_pattern: Option<ChipRef<'a>>) -> crate::chip::Iter<'a> {
         crate::chip::Iter {
             state: 0,
@@ -628,13 +652,12 @@ impl LMSensors {
 
     /// See: [`sensors_init`].
     fn new(
-        config_file_fp: Option<LibCFileStream>,
+        config_file_stream: Option<LibCFileStream>,
         error_listener: *mut Box<dyn crate::errors::Listener>,
     ) -> Result<Self> {
-        let config_file_fp = config_file_fp
+        let config_file_fp = config_file_stream
             .as_ref()
-            .map(LibCFileStream::as_mut_ptr)
-            .unwrap_or(ptr::null_mut());
+            .map_or(ptr::null_mut(), LibCFileStream::as_mut_ptr);
 
         let locked_self = api_access_lock().lock()?;
 

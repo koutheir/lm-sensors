@@ -41,11 +41,13 @@ impl<'a> Iterator for Iter<'a> {
 
 impl<'a> FeatureRef<'a> {
     /// Return the chip controlling this feature.
+    #[must_use]
     pub fn chip(&self) -> ChipRef {
         self.chip
     }
 
     /// Return the name of this feature, if it is valid UTF-8.
+    #[must_use]
     pub fn name(&self) -> Option<Result<&str>> {
         self.raw_name()
             .map(|name| name.to_str().map_err(Into::into))
@@ -57,11 +59,13 @@ impl<'a> FeatureRef<'a> {
     }
 
     /// Return the number of this feature.
+    #[must_use]
     pub fn number(&self) -> c_int {
         self.as_ref().number
     }
 
     /// Return the type of this feature, if it is a valid [`Kind`].
+    #[must_use]
     pub fn kind(&self) -> Option<Kind> {
         Kind::from_raw(self.raw_kind())
     }
@@ -69,11 +73,12 @@ impl<'a> FeatureRef<'a> {
     /// Return the sub-feature of the given type for a given main feature,
     /// if it exists, or an error otherwise.
     pub fn sub_feature_by_kind(&self, kind: crate::value::Kind) -> Result<SubFeatureRef> {
-        self.sub_feature_by_raw_kind(kind as c_uint)
+        self.sub_feature_by_raw_kind(c_uint::from(kind))
     }
 
     /// Return an iterator which yields all sub-features belonging
     /// to this feature.
+    #[must_use]
     pub fn sub_feature_iter(&self) -> crate::sub_feature::Iter {
         crate::sub_feature::Iter {
             feature: *self,
@@ -82,6 +87,7 @@ impl<'a> FeatureRef<'a> {
     }
 
     /// Return the raw name of this feature, if available.
+    #[must_use]
     pub fn raw_name(&self) -> Option<&CStr> {
         let name = self.as_ref().name;
         (!name.is_null()).then(move || unsafe { CStr::from_ptr(name) })
@@ -113,6 +119,7 @@ impl<'a> FeatureRef<'a> {
     /// *e.g.*, [`SENSORS_FEATURE_TEMP`].
     ///
     /// [`SENSORS_FEATURE_TEMP`]: sensors_feature_type::SENSORS_FEATURE_TEMP
+    #[must_use]
     pub fn raw_kind(&self) -> c_uint {
         self.as_ref().type_
     }
@@ -160,7 +167,7 @@ impl<'a> fmt::Display for FeatureRef<'a> {
         if let Ok(label) = self.raw_label() {
             write!(f, "{}", label.to_string_lossy())
         } else {
-            write!(f, "�")
+            write!(f, "\u{fffd}")
         }
     }
 }
@@ -200,12 +207,14 @@ pub enum Kind {
 impl Kind {
     /// Return an instance from one of the `SENSORS_FEATURE_*` values,
     /// *e.g.,* [`SENSORS_FEATURE_TEMP`].
+    #[must_use]
     pub fn from_raw(kind: c_uint) -> Option<Self> {
         Self::try_from(kind).ok()
     }
 
     /// Return one of the `SENSORS_FEATURE_*` values
     /// (*e.g.,* [`SENSORS_FEATURE_TEMP`]) equivalent to this instance.
+    #[must_use]
     pub fn as_raw(self) -> c_uint {
         self.into()
     }
@@ -219,7 +228,7 @@ impl Default for Kind {
 
 impl fmt::Display for Kind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
+        match *self {
             Self::Voltage => write!(f, "Voltage"),
             Self::Fan => write!(f, "Fan"),
             Self::Temperature => write!(f, "Temperature"),

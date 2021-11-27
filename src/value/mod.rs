@@ -15,6 +15,7 @@ impl Value {
     /// Return an instance of the given type and value.
     ///
     /// The valid range for the value depends on the kind.
+    #[must_use]
     pub fn new(kind: Kind, value: f64) -> Option<Self> {
         let result = match kind {
             Kind::VoltageInput => Self::VoltageInput(value),
@@ -25,23 +26,23 @@ impl Value {
             Kind::VoltageAverage => Self::VoltageAverage(value),
             Kind::VoltageLowest => Self::VoltageLowest(value),
             Kind::VoltageHighest => Self::VoltageHighest(value),
-            Kind::VoltageAlarm => Self::VoltageAlarm(value != 0.0),
-            Kind::VoltageMinimumAlarm => Self::VoltageMinimumAlarm(value != 0.0),
-            Kind::VoltageMaximumAlarm => Self::VoltageMaximumAlarm(value != 0.0),
-            Kind::VoltageBeep => Self::VoltageBeep(value != 0.0),
-            Kind::VoltageLCriticalAlarm => Self::VoltageLCriticalAlarm(value != 0.0),
-            Kind::VoltageCriticalAlarm => Self::VoltageCriticalAlarm(value != 0.0),
+            Kind::VoltageAlarm => Self::VoltageAlarm(value != 0.0_f64),
+            Kind::VoltageMinimumAlarm => Self::VoltageMinimumAlarm(value != 0.0_f64),
+            Kind::VoltageMaximumAlarm => Self::VoltageMaximumAlarm(value != 0.0_f64),
+            Kind::VoltageBeep => Self::VoltageBeep(value != 0.0_f64),
+            Kind::VoltageLCriticalAlarm => Self::VoltageLCriticalAlarm(value != 0.0_f64),
+            Kind::VoltageCriticalAlarm => Self::VoltageCriticalAlarm(value != 0.0_f64),
 
             Kind::FanInput => Self::FanInput(value),
             Kind::FanMinimum => Self::FanMinimum(value),
             Kind::FanMaximum => Self::FanMaximum(value),
-            Kind::FanAlarm => Self::FanAlarm(value != 0.0),
-            Kind::FanFault => Self::FanFault(value != 0.0),
+            Kind::FanAlarm => Self::FanAlarm(value != 0.0_f64),
+            Kind::FanFault => Self::FanFault(value != 0.0_f64),
             Kind::FanDivisor => Self::FanDivisor(value),
-            Kind::FanBeep => Self::FanBeep(value != 0.0),
+            Kind::FanBeep => Self::FanBeep(value != 0.0_f64),
             Kind::FanPulses => Self::FanPulses(value),
-            Kind::FanMinimumAlarm => Self::FanMinimumAlarm(value != 0.0),
-            Kind::FanMaximumAlarm => Self::FanMaximumAlarm(value != 0.0),
+            Kind::FanMinimumAlarm => Self::FanMinimumAlarm(value != 0.0_f64),
+            Kind::FanMaximumAlarm => Self::FanMaximumAlarm(value != 0.0_f64),
 
             Kind::TemperatureInput => Self::TemperatureInput(value),
             Kind::TemperatureMaximum => Self::TemperatureMaximum(value),
@@ -56,19 +57,19 @@ impl Value {
             Kind::TemperatureHighest => Self::TemperatureHighest(value),
             Kind::TemperatureMinimumHysteresis => Self::TemperatureMinimumHysteresis(value),
             Kind::TemperatureLCriticalHysteresis => Self::TemperatureLCriticalHysteresis(value),
-            Kind::TemperatureAlarm => Self::TemperatureAlarm(value != 0.0),
-            Kind::TemperatureMaximumAlarm => Self::TemperatureMaximumAlarm(value != 0.0),
-            Kind::TemperatureMinimumAlarm => Self::TemperatureMinimumAlarm(value != 0.0),
-            Kind::TemperatureCriticalAlarm => Self::TemperatureCriticalAlarm(value != 0.0),
-            Kind::TemperatureFault => Self::TemperatureFault(value != 0.0),
+            Kind::TemperatureAlarm => Self::TemperatureAlarm(value != 0.0_f64),
+            Kind::TemperatureMaximumAlarm => Self::TemperatureMaximumAlarm(value != 0.0_f64),
+            Kind::TemperatureMinimumAlarm => Self::TemperatureMinimumAlarm(value != 0.0_f64),
+            Kind::TemperatureCriticalAlarm => Self::TemperatureCriticalAlarm(value != 0.0_f64),
+            Kind::TemperatureFault => Self::TemperatureFault(value != 0.0_f64),
             Kind::TemperatureType => {
                 let value = TemperatureSensorKind::from_raw(value)?;
                 Self::TemperatureType(value)
             }
             Kind::TemperatureOffset => Self::TemperatureOffset(value),
-            Kind::TemperatureBeep => Self::TemperatureBeep(value != 0.0),
-            Kind::TemperatureEmergencyAlarm => Self::TemperatureEmergencyAlarm(value != 0.0),
-            Kind::TemperatureLCriticalAlarm => Self::TemperatureLCriticalAlarm(value != 0.0),
+            Kind::TemperatureBeep => Self::TemperatureBeep(value != 0.0_f64),
+            Kind::TemperatureEmergencyAlarm => Self::TemperatureEmergencyAlarm(value != 0.0_f64),
+            Kind::TemperatureLCriticalAlarm => Self::TemperatureLCriticalAlarm(value != 0.0_f64),
 
             Kind::PowerAverage => Self::PowerAverage(value),
             Kind::PowerAverageHighest => Self::PowerAverageHighest(value),
@@ -83,12 +84,12 @@ impl Value {
             Kind::PowerMinimum => Self::PowerMinimum(value),
             Kind::PowerLCritical => Self::PowerLCritical(value),
             Kind::PowerAverageInterval => Self::PowerAverageInterval(value),
-            Kind::PowerAlarm => Self::PowerAlarm(value != 0.0),
-            Kind::PowerCapAlarm => Self::PowerCapAlarm(value != 0.0),
-            Kind::PowerMaximumAlarm => Self::PowerMaximumAlarm(value != 0.0),
-            Kind::PowerCriticalAlarm => Self::PowerCriticalAlarm(value != 0.0),
-            Kind::PowerMinimumAlarm => Self::PowerMinimumAlarm(value != 0.0),
-            Kind::PowerLCriticalAlarm => Self::PowerLCriticalAlarm(value != 0.0),
+            Kind::PowerAlarm => Self::PowerAlarm(value != 0.0_f64),
+            Kind::PowerCapAlarm => Self::PowerCapAlarm(value != 0.0_f64),
+            Kind::PowerMaximumAlarm => Self::PowerMaximumAlarm(value != 0.0_f64),
+            Kind::PowerCriticalAlarm => Self::PowerCriticalAlarm(value != 0.0_f64),
+            Kind::PowerMinimumAlarm => Self::PowerMinimumAlarm(value != 0.0_f64),
+            Kind::PowerLCriticalAlarm => Self::PowerLCriticalAlarm(value != 0.0_f64),
 
             Kind::EnergyInput => Self::EnergyInput(value),
 
@@ -100,21 +101,21 @@ impl Value {
             Kind::CurrentAverage => Self::CurrentAverage(value),
             Kind::CurrentLowest => Self::CurrentLowest(value),
             Kind::CurrentHighest => Self::CurrentHighest(value),
-            Kind::CurrentAlarm => Self::CurrentAlarm(value != 0.0),
-            Kind::CurrentMinimumAlarm => Self::CurrentMinimumAlarm(value != 0.0),
-            Kind::CurrentMaximumAlarm => Self::CurrentMaximumAlarm(value != 0.0),
-            Kind::CurrentBeep => Self::CurrentBeep(value != 0.0),
-            Kind::CurrentLCriticalAlarm => Self::CurrentLCriticalAlarm(value != 0.0),
-            Kind::CurrentCriticalAlarm => Self::CurrentCriticalAlarm(value != 0.0),
+            Kind::CurrentAlarm => Self::CurrentAlarm(value != 0.0_f64),
+            Kind::CurrentMinimumAlarm => Self::CurrentMinimumAlarm(value != 0.0_f64),
+            Kind::CurrentMaximumAlarm => Self::CurrentMaximumAlarm(value != 0.0_f64),
+            Kind::CurrentBeep => Self::CurrentBeep(value != 0.0_f64),
+            Kind::CurrentLCriticalAlarm => Self::CurrentLCriticalAlarm(value != 0.0_f64),
+            Kind::CurrentCriticalAlarm => Self::CurrentCriticalAlarm(value != 0.0_f64),
 
             Kind::HumidityInput => Self::HumidityInput(value),
 
             Kind::VoltageID => Self::VoltageID(value),
 
-            Kind::IntrusionAlarm => Self::IntrusionAlarm(value != 0.0),
-            Kind::IntrusionBeep => Self::IntrusionBeep(value != 0.0),
+            Kind::IntrusionAlarm => Self::IntrusionAlarm(value != 0.0_f64),
+            Kind::IntrusionBeep => Self::IntrusionBeep(value != 0.0_f64),
 
-            Kind::BeepEnable => Self::BeepEnable(value != 0.0),
+            Kind::BeepEnable => Self::BeepEnable(value != 0.0_f64),
 
             Kind::Unknown => Self::Unknown { kind, value },
         };
@@ -122,15 +123,103 @@ impl Value {
     }
 
     /// Return an instance of the given type and boolean value.
+    #[must_use]
     pub fn new_bool(kind: Kind, value: bool) -> Option<Self> {
         Self::new(kind, if value { 1.0 } else { 0.0 })
     }
 
     /// Return an instance of the given type and temperature sensor type.
+    #[must_use]
     pub fn new_temperature_sensor_kind(kind: Kind, value: TemperatureSensorKind) -> Option<Self> {
         match kind {
             Kind::TemperatureType => Some(Self::TemperatureType(value)),
-            _ => None,
+
+            Kind::VoltageInput
+            | Kind::VoltageMinimum
+            | Kind::VoltageMaximum
+            | Kind::VoltageLCritical
+            | Kind::VoltageCritical
+            | Kind::VoltageAverage
+            | Kind::VoltageLowest
+            | Kind::VoltageHighest
+            | Kind::VoltageAlarm
+            | Kind::VoltageMinimumAlarm
+            | Kind::VoltageMaximumAlarm
+            | Kind::VoltageBeep
+            | Kind::VoltageLCriticalAlarm
+            | Kind::VoltageCriticalAlarm
+            | Kind::FanInput
+            | Kind::FanMinimum
+            | Kind::FanMaximum
+            | Kind::FanAlarm
+            | Kind::FanFault
+            | Kind::FanDivisor
+            | Kind::FanBeep
+            | Kind::FanPulses
+            | Kind::FanMinimumAlarm
+            | Kind::FanMaximumAlarm
+            | Kind::TemperatureInput
+            | Kind::TemperatureMaximum
+            | Kind::TemperatureMaximumHysteresis
+            | Kind::TemperatureMinimum
+            | Kind::TemperatureCritical
+            | Kind::TemperatureCriticalHysteresis
+            | Kind::TemperatureLCritical
+            | Kind::TemperatureEmergency
+            | Kind::TemperatureEmergencyHysteresis
+            | Kind::TemperatureLowest
+            | Kind::TemperatureHighest
+            | Kind::TemperatureMinimumHysteresis
+            | Kind::TemperatureLCriticalHysteresis
+            | Kind::TemperatureAlarm
+            | Kind::TemperatureMaximumAlarm
+            | Kind::TemperatureMinimumAlarm
+            | Kind::TemperatureCriticalAlarm
+            | Kind::TemperatureFault
+            | Kind::TemperatureOffset
+            | Kind::TemperatureBeep
+            | Kind::TemperatureEmergencyAlarm
+            | Kind::TemperatureLCriticalAlarm
+            | Kind::PowerAverage
+            | Kind::PowerAverageHighest
+            | Kind::PowerAverageLowest
+            | Kind::PowerInput
+            | Kind::PowerInputHighest
+            | Kind::PowerInputLowest
+            | Kind::PowerCap
+            | Kind::PowerCapHysteresis
+            | Kind::PowerMaximum
+            | Kind::PowerCritical
+            | Kind::PowerMinimum
+            | Kind::PowerLCritical
+            | Kind::PowerAverageInterval
+            | Kind::PowerAlarm
+            | Kind::PowerCapAlarm
+            | Kind::PowerMaximumAlarm
+            | Kind::PowerCriticalAlarm
+            | Kind::PowerMinimumAlarm
+            | Kind::PowerLCriticalAlarm
+            | Kind::EnergyInput
+            | Kind::CurrentInput
+            | Kind::CurrentMinimum
+            | Kind::CurrentMaximum
+            | Kind::CurrentLCritical
+            | Kind::CurrentCritical
+            | Kind::CurrentAverage
+            | Kind::CurrentLowest
+            | Kind::CurrentHighest
+            | Kind::CurrentAlarm
+            | Kind::CurrentMinimumAlarm
+            | Kind::CurrentMaximumAlarm
+            | Kind::CurrentBeep
+            | Kind::CurrentLCriticalAlarm
+            | Kind::CurrentCriticalAlarm
+            | Kind::HumidityInput
+            | Kind::VoltageID
+            | Kind::IntrusionAlarm
+            | Kind::IntrusionBeep
+            | Kind::BeepEnable
+            | Kind::Unknown => None,
         }
     }
 
@@ -139,13 +228,15 @@ impl Value {
     /// The raw type is one of `SENSORS_SUBFEATURE_*` values,
     /// *e.g.,* [`SENSORS_SUBFEATURE_TEMP_INPUT`].
     /// The valid range for the raw value depends on the raw kind.
+    #[must_use]
     pub fn from_raw(kind: c_uint, value: f64) -> Option<Self> {
         Kind::from_raw(kind).and_then(|kind| Self::new(kind, value))
     }
 
     /// Return the type of this instance.
+    #[must_use]
     pub fn kind(&self) -> Kind {
-        match self {
+        match *self {
             Self::VoltageInput(_) => Kind::VoltageInput,
             Self::VoltageMinimum(_) => Kind::VoltageMinimum,
             Self::VoltageMaximum(_) => Kind::VoltageMaximum,
@@ -247,8 +338,9 @@ impl Value {
     }
 
     /// Return the raw value of this instance.
+    #[must_use]
     pub fn raw_value(&self) -> f64 {
-        match self {
+        match *self {
             // Voltage
             Self::VoltageInput(value)
             | Self::VoltageMinimum(value)
@@ -307,7 +399,10 @@ impl Value {
             // Humidity
             | Self::HumidityInput(value)
             // VoltageID
-            | Self::VoltageID(value) => *value,
+            | Self::VoltageID(value)
+            // Unknown
+            | Self::Unknown { value, .. }
+            => value,
 
             // Voltage
             Self::VoltageAlarm(value)
@@ -350,16 +445,14 @@ impl Value {
             | Self::IntrusionBeep(value)
             // Beep
             | Self::BeepEnable(value) => {
-                if *value {
-                    1.0
+                if value {
+                    1.0_f64
                 } else {
-                    0.0
+                    0.0_f64
                 }
             }
 
-            Self::TemperatureType(value) => value.as_raw() as f64,
-
-            Self::Unknown { value, .. } => *value,
+            Self::TemperatureType(value) => f64::from(value.as_raw()),
         }
     }
 
@@ -424,7 +517,9 @@ impl Value {
             // Humidity
             | Self::HumidityInput(value)
             // VoltageID
-            | Self::VoltageID(value) => {
+            | Self::VoltageID(value)
+            // Unknown
+            | Self::Unknown { value, .. } => {
                 let result = *value;
                 *value = new_value;
                 Ok(result)
@@ -484,16 +579,11 @@ impl Value {
                 *value = new_value;
                 Ok(result)
             },
-
-            Self::Unknown { value, .. } => {
-                let result = *value;
-                *value = new_value;
-                Ok(result)
-            }
         }
     }
 
     /// Return the measurement unit of this instance.
+    #[must_use]
     pub fn unit(&self) -> Unit {
         self.kind().unit()
     }
@@ -501,7 +591,7 @@ impl Value {
 
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
+        match *self {
             Self::VoltageAlarm(value)
             | Self::VoltageMinimumAlarm(value)
             | Self::VoltageMaximumAlarm(value)
@@ -528,7 +618,7 @@ impl fmt::Display for Value {
             | Self::CurrentLCriticalAlarm(value)
             | Self::CurrentCriticalAlarm(value)
             | Self::IntrusionAlarm(value) => {
-                if *value {
+                if value {
                     write!(f, "ALARM")
                 } else {
                     Ok(())
@@ -541,7 +631,7 @@ impl fmt::Display for Value {
             | Self::CurrentBeep(value)
             | Self::IntrusionBeep(value)
             | Self::BeepEnable(value) => {
-                if *value {
+                if value {
                     write!(f, "BEEP")
                 } else {
                     Ok(())
@@ -549,7 +639,7 @@ impl fmt::Display for Value {
             }
 
             Self::FanFault(value) | Self::TemperatureFault(value) => {
-                if *value {
+                if value {
                     write!(f, "FAULT")
                 } else {
                     Ok(())
@@ -557,10 +647,10 @@ impl fmt::Display for Value {
             }
 
             Self::FanDivisor(value) | Self::FanPulses(value) | Self::TemperatureOffset(value) => {
-                write!(f, "{}", *value)
+                write!(f, "{}", value)
             }
 
-            Self::TemperatureType(value) => write!(f, "{}", *value),
+            Self::TemperatureType(value) => write!(f, "{}", value),
 
             Self::VoltageInput(value)
             | Self::VoltageMinimum(value)
@@ -570,10 +660,10 @@ impl fmt::Display for Value {
             | Self::VoltageAverage(value)
             | Self::VoltageLowest(value)
             | Self::VoltageHighest(value)
-            | Self::VoltageID(value) => write!(f, "{} {}", *value, Unit::Volt),
+            | Self::VoltageID(value) => write!(f, "{} {}", value, Unit::Volt),
 
             Self::FanInput(value) | Self::FanMinimum(value) | Self::FanMaximum(value) => {
-                write!(f, "{} {}", *value, Unit::RotationPerMinute)
+                write!(f, "{} {}", value, Unit::RotationPerMinute)
             }
 
             Self::TemperatureInput(value)
@@ -589,7 +679,7 @@ impl fmt::Display for Value {
             | Self::TemperatureHighest(value)
             | Self::TemperatureMinimumHysteresis(value)
             | Self::TemperatureLCriticalHysteresis(value) => {
-                write!(f, "{} {}", *value, Unit::Celcius)
+                write!(f, "{} {}", value, Unit::Celcius)
             }
 
             Self::PowerAverage(value)
@@ -603,11 +693,11 @@ impl fmt::Display for Value {
             | Self::PowerMaximum(value)
             | Self::PowerCritical(value)
             | Self::PowerMinimum(value)
-            | Self::PowerLCritical(value) => write!(f, "{} {}", *value, Unit::Watt),
+            | Self::PowerLCritical(value) => write!(f, "{} {}", value, Unit::Watt),
 
-            Self::PowerAverageInterval(value) => write!(f, "{} {}", *value, Unit::Second),
+            Self::PowerAverageInterval(value) => write!(f, "{} {}", value, Unit::Second),
 
-            Self::EnergyInput(value) => write!(f, "{} {}", *value, Unit::Joule),
+            Self::EnergyInput(value) => write!(f, "{} {}", value, Unit::Joule),
 
             Self::CurrentInput(value)
             | Self::CurrentMinimum(value)
@@ -616,11 +706,11 @@ impl fmt::Display for Value {
             | Self::CurrentCritical(value)
             | Self::CurrentAverage(value)
             | Self::CurrentLowest(value)
-            | Self::CurrentHighest(value) => write!(f, "{} {}", *value, Unit::Amp),
+            | Self::CurrentHighest(value) => write!(f, "{} {}", value, Unit::Amp),
 
-            Self::HumidityInput(value) => write!(f, "{} {}", *value, Unit::Percentage),
+            Self::HumidityInput(value) => write!(f, "{} {}", value, Unit::Percentage),
 
-            Self::Unknown { .. } => write!(f, "�"),
+            Self::Unknown { .. } => write!(f, "\u{fffd}"),
         }
     }
 }
@@ -743,17 +833,20 @@ pub enum Kind {
 impl Kind {
     /// Return an instance from one of the `SENSORS_SUBFEATURE_*` values,
     /// *e.g.,* [`SENSORS_SUBFEATURE_TEMP_INPUT`].
+    #[must_use]
     pub fn from_raw(kind: c_uint) -> Option<Self> {
         Self::try_from(kind).ok()
     }
 
     /// Return one of the `SENSORS_SUBFEATURE_*` values
     /// (*e.g.,* [`SENSORS_SUBFEATURE_TEMP_INPUT`]) equivalent to this instance.
+    #[must_use]
     pub fn as_raw(self) -> c_uint {
         self.into()
     }
 
     /// Return the measurement unit of this instance.
+    #[must_use]
     pub fn unit(self) -> Unit {
         match self {
             // Voltage
@@ -871,7 +964,7 @@ impl Default for Kind {
 
 impl fmt::Display for Kind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let name = match self {
+        let name = match *self {
             Self::VoltageInput => "VoltageInput",
             Self::VoltageMinimum => "VoltageMinimum",
             Self::VoltageMaximum => "VoltageMaximum",
@@ -988,7 +1081,7 @@ impl Default for Unit {
 
 impl fmt::Display for Unit {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
+        match *self {
             Unit::None => Ok(()),
             Unit::Volt => write!(f, "V"),
             Unit::Amp => write!(f, "A"),
@@ -1018,30 +1111,32 @@ impl fmt::Display for Unit {
     num_enum::IntoPrimitive,
 )]
 pub enum TemperatureSensorKind {
-    Disabled = 0,
-    CPUDiode = 1,
-    Transistor = 2,
-    ThermalDiode = 3,
-    Thermistor = 4,
-    AMDAMDSI = 5,
-    IntelPECI = 6,
+    Disabled = 0_i32,
+    CPUDiode = 1_i32,
+    Transistor = 2_i32,
+    ThermalDiode = 3_i32,
+    Thermistor = 4_i32,
+    AMDAMDSI = 5_i32,
+    IntelPECI = 6_i32,
 }
 
 impl TemperatureSensorKind {
     /// Return an instance given a raw value, if it is valid.
+    #[must_use]
     pub fn from_raw(value: f64) -> Option<Self> {
-        let value: i64 = unsafe { value.round().to_int_unchecked() };
-        if value < 0 {
+        let int_value: i64 = unsafe { value.round().to_int_unchecked() };
+        if int_value < 0 {
             None
-        } else if value > 1000 {
+        } else if int_value > 1000 {
             Some(Self::Thermistor)
         } else {
             // 0 <= value <= 1000
-            Self::try_from(value as c_int).ok()
+            Self::try_from(int_value as c_int).ok()
         }
     }
 
     /// Return the raw value equivalent to this instance.
+    #[must_use]
     pub fn as_raw(self) -> c_int {
         self.into()
     }
@@ -1055,7 +1150,7 @@ impl Default for TemperatureSensorKind {
 
 impl fmt::Display for TemperatureSensorKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
+        match *self {
             Self::Disabled => write!(f, "Disabled"),
             Self::CPUDiode => write!(f, "CPU diode"),
             Self::Transistor => write!(f, "Transistor"),
