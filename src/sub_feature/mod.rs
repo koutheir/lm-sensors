@@ -129,7 +129,7 @@ impl<'a> SubFeatureRef<'a> {
     pub fn raw_value(&self) -> Result<f64> {
         let mut result = 0.0_f64;
 
-        let r = api_access_lock().lock().map(move |_guard| unsafe {
+        let r = api_access_lock().lock().map(|_guard| unsafe {
             sensors_get_value(
                 self.feature.chip.as_ref(),
                 self.feature.as_ref().number,
