@@ -129,12 +129,8 @@ impl<'a> SubFeatureRef<'a> {
     pub fn raw_value(&self) -> Result<f64> {
         let mut result = 0.0_f64;
 
-        let r = api_access_lock().lock().map(move |_guard| unsafe {
-            sensors_get_value(
-                self.feature.chip.as_ref(),
-                self.feature.as_ref().number,
-                &mut result,
-            )
+        let r = api_access_lock().lock().map(|_guard| unsafe {
+            sensors_get_value(self.feature.chip.as_ref(), self.number(), &mut result)
         })?;
         if r == 0 {
             Ok(result)
@@ -148,7 +144,7 @@ impl<'a> SubFeatureRef<'a> {
     /// See: [`sensors_set_value`].
     pub fn set_raw_value(&self, new_value: f64) -> Result<()> {
         let chip = self.feature.chip.as_ref();
-        let number = self.feature.as_ref().number;
+        let number = self.number();
         let r = api_access_lock()
             .lock()
             .map(move |_guard| unsafe { sensors_set_value(chip, number, new_value) })?;
