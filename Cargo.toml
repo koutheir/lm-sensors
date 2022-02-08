@@ -1,16 +1,16 @@
 # https://rust-lang.github.io/api-guidelines/checklist.html
 
 [package]
-name = "lm-sensors"
-description = "Hardware monitoring in Linux"
-version = "0.1.3"
-authors = ["Koutheir Attouchi <koutheir@gmail.com>"]
-edition = "2021"
-readme = "README.md"
-license = "MIT"
-keywords = [ "ffi", "bindings", "sensor", "linux", "monitoring" ]
-categories = [ "api-bindings", "os", "os::linux-apis", "hardware-support" ]
-repository = "https://github.com/koutheir/lm-sensors"
+name          = "lm-sensors"
+description   = "Hardware monitoring in Linux"
+version       = "0.1.4"
+authors       = ["Koutheir Attouchi <koutheir@gmail.com>"]
+edition       = "2021"
+readme        = "README.md"
+license       = "MIT"
+keywords      = ["ffi", "bindings", "sensor", "linux", "monitoring"]
+categories    = ["api-bindings", "os", "os::linux-apis", "hardware-support"]
+repository    = "https://github.com/koutheir/lm-sensors"
 documentation = "https://docs.rs/lm-sensors"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -25,7 +25,7 @@ num_enum    = { version = "0.5" }
 [dev-dependencies]
 assert_matches = { version = "1.5" }
 serial_test    = { version = "0.5" }
-tempfile       = { version = "3.2" }
+tempfile       = { version = "3.3" }
 
 [package.metadata.docs.rs]
 default-target = "x86_64-unknown-linux-gnu"
