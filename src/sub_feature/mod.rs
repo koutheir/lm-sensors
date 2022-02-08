@@ -40,7 +40,7 @@ impl<'a> Iterator for Iter<'a> {
                 .as_ref()
             })
             .ok()?
-            .map(move |raw| SubFeatureRef {
+            .map(|raw| SubFeatureRef {
                 feature: self.feature,
                 raw,
             })
@@ -104,7 +104,7 @@ impl<'a> SubFeatureRef<'a> {
     #[must_use]
     pub fn raw_name(&self) -> Option<&CStr> {
         let name = self.as_ref().name;
-        (!name.is_null()).then(move || unsafe { CStr::from_ptr(name) })
+        (!name.is_null()).then(|| unsafe { CStr::from_ptr(name) })
     }
 
     /// Return the raw type of this sub-feature, which is one
@@ -147,7 +147,7 @@ impl<'a> SubFeatureRef<'a> {
         let number = self.number();
         let r = api_access_lock()
             .lock()
-            .map(move |_guard| unsafe { sensors_set_value(chip, number, new_value) })?;
+            .map(|_guard| unsafe { sensors_set_value(chip, number, new_value) })?;
         if r == 0 {
             Ok(())
         } else {

@@ -40,10 +40,10 @@ pub trait SharedBus: AsRef<sensors_bus_id> {
     fn raw_name(&self) -> Result<&CStr> {
         let name = api_access_lock()
             .lock()
-            .map(move |_guard| unsafe { sensors_get_adapter_name(self.as_ref()) })?;
+            .map(|_guard| unsafe { sensors_get_adapter_name(self.as_ref()) })?;
 
         (!name.is_null())
-            .then(move || unsafe { CStr::from_ptr(name) })
+            .then(|| unsafe { CStr::from_ptr(name) })
             .ok_or_else(|| {
                 let err = io::ErrorKind::NotFound.into();
                 Error::from_io("sensors_get_subfeature", err)

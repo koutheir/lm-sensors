@@ -32,7 +32,7 @@ impl<'a> Iterator for Iter<'a> {
 
         api_access_lock()
             .lock()
-            .map(move |_guard| unsafe {
+            .map(|_guard| unsafe {
                 sensors_get_detected_chips(match_pattern, &mut self.state).as_ref()
             })
             .ok()?
@@ -67,7 +67,7 @@ pub trait SharedChip: AsRef<sensors_chip_name> + PartialEq<Self> {
     /// Return the address of this chip, if available.
     fn address(&self) -> Option<c_int> {
         let addr = self.raw_address();
-        (addr != SENSORS_CHIP_NAME_ADDR_ANY).then(move || addr)
+        (addr != SENSORS_CHIP_NAME_ADDR_ANY).then(|| addr)
     }
 
     /// Execute all set statements for this chip.
@@ -76,7 +76,7 @@ pub trait SharedChip: AsRef<sensors_chip_name> + PartialEq<Self> {
     fn do_chip_sets(&self) -> Result<()> {
         let r = api_access_lock()
             .lock()
-            .map(move |_guard| unsafe { sensors_do_chip_sets(self.as_ref()) })?;
+            .map(|_guard| unsafe { sensors_do_chip_sets(self.as_ref()) })?;
         if r == 0 {
             Ok(())
         } else {
@@ -97,7 +97,7 @@ pub trait SharedChip: AsRef<sensors_chip_name> + PartialEq<Self> {
     ///
     /// See: [`sensors_snprintf_chip_name`].
     fn raw_name(&self) -> Result<CString> {
-        let (r, mut buffer) = api_access_lock().lock().map(move |_guard| {
+        let (r, mut buffer) = api_access_lock().lock().map(|_guard| {
             let result = unsafe { sensors_snprintf_chip_name(ptr::null_mut(), 0, self.as_ref()) };
             if result < 0 {
                 (result, Vec::default())
@@ -132,13 +132,13 @@ pub trait SharedChip: AsRef<sensors_chip_name> + PartialEq<Self> {
     /// Return the raw prefix of this chip, if available.
     fn raw_prefix(&self) -> Option<&CStr> {
         let prefix = self.as_ref().prefix;
-        (!prefix.is_null()).then(move || unsafe { CStr::from_ptr(prefix) })
+        (!prefix.is_null()).then(|| unsafe { CStr::from_ptr(prefix) })
     }
 
     /// Return the raw path of the driver of this chip, if available.
     fn raw_path(&self) -> Option<&CStr> {
         let path = self.as_ref().path;
-        (!path.is_null()).then(move || unsafe { CStr::from_ptr(path) })
+        (!path.is_null()).then(|| unsafe { CStr::from_ptr(path) })
     }
 
     /// Return the raw address of this chip, which is either a number,
@@ -232,7 +232,7 @@ impl<'a> Drop for Chip<'a> {
     fn drop(&mut self) {
         let _ignored = api_access_lock()
             .lock()
-            .map(move |_guard| unsafe { sensors_free_chip_name(self.as_mut()) });
+            .map(|_guard| unsafe { sensors_free_chip_name(self.as_mut()) });
     }
 }
 

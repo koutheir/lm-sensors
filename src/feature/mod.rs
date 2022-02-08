@@ -32,7 +32,7 @@ impl<'a> Iterator for Iter<'a> {
                 sensors_get_features(self.chip.as_ref(), &mut self.state).as_ref()
             })
             .ok()?
-            .map(move |raw| FeatureRef {
+            .map(|raw| FeatureRef {
                 chip: self.chip,
                 raw,
             })
@@ -90,7 +90,7 @@ impl<'a> FeatureRef<'a> {
     #[must_use]
     pub fn raw_name(&self) -> Option<&CStr> {
         let name = self.as_ref().name;
-        (!name.is_null()).then(move || unsafe { CStr::from_ptr(name) })
+        (!name.is_null()).then(|| unsafe { CStr::from_ptr(name) })
     }
 
     /// Return the raw label of this feature.
@@ -101,7 +101,7 @@ impl<'a> FeatureRef<'a> {
     pub fn raw_label(&self) -> Result<CString> {
         let label = api_access_lock()
             .lock()
-            .map(move |_guard| unsafe { sensors_get_label(self.chip().as_ref(), self.as_ref()) })?;
+            .map(|_guard| unsafe { sensors_get_label(self.chip().as_ref(), self.as_ref()) })?;
 
         if label.is_null() {
             let err = io::ErrorKind::InvalidInput.into();
@@ -131,7 +131,7 @@ impl<'a> FeatureRef<'a> {
     ///
     /// See: [`sensors_get_subfeature`].
     pub fn sub_feature_by_raw_kind(&self, kind: c_uint) -> Result<SubFeatureRef> {
-        let sub_feature = api_access_lock().lock().map(move |_guard| unsafe {
+        let sub_feature = api_access_lock().lock().map(|_guard| unsafe {
             sensors_get_subfeature(self.chip().as_ref(), self.as_ref(), kind).as_ref()
         })?;
 

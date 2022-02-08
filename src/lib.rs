@@ -531,7 +531,7 @@ impl LMSensors {
     #[must_use]
     pub fn raw_version(&self) -> Option<&CStr> {
         let p = unsafe { libsensors_version };
-        (!p.is_null()).then(move || unsafe { CStr::from_ptr(p) })
+        (!p.is_null()).then(|| unsafe { CStr::from_ptr(p) })
     }
 
     /// Return a new instance of [`ChipRef`], given a shared reference
@@ -693,7 +693,7 @@ impl Drop for LMSensors {
     fn drop(&mut self) {
         let error_listener = api_access_lock()
             .lock()
-            .map(move |_guard| {
+            .map(|_guard| {
                 unsafe { sensors_cleanup() };
 
                 let error_listener = self.error_reporter.restore();
