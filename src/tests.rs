@@ -94,3 +94,36 @@ fn init_error_listener() {
         .initialize()
         .unwrap();
 }
+
+#[test]
+#[serial]
+fn list_all() {
+    use super::prelude::*;
+
+    // Initialize LM sensors library.
+    let sensors = super::Initializer::default().initialize().unwrap();
+
+    // Print all chips.
+    for chip in sensors.chip_iter(None) {
+        if let Some(path) = chip.path() {
+            println!("chip: {} at {} ({})", chip, chip.bus(), path.display());
+        } else {
+            println!("chip: {} at {}", chip, chip.bus());
+        }
+
+        // Print all features of the current chip.
+        for feature in chip.feature_iter() {
+            let name = feature.name().transpose().unwrap().unwrap_or("N/A");
+            println!("    {}: {}", name, feature);
+
+            // Print all sub-features of the current chip feature.
+            for sub_feature in feature.sub_feature_iter() {
+                if let Ok(value) = sub_feature.value() {
+                    println!("        {}: {}", sub_feature, value);
+                } else {
+                    println!("        {}: N/A", sub_feature);
+                }
+            }
+        }
+    }
+}

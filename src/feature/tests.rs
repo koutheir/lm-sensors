@@ -61,7 +61,7 @@ fn sub_feature_by_kind() {
     let feature0 = chip0.feature_iter().next().unwrap();
 
     let sub_feature = feature0.sub_feature_iter().next().unwrap();
-    sub_feature.raw_kind();
+    let _ignored = sub_feature.raw_kind();
 
     let sub_feature0 = feature0
         .sub_feature_by_raw_kind(sub_feature.raw_kind())
