@@ -42,6 +42,7 @@ for chip in sensors.chip_iter(None) {
         }
     }
 }
+# Ok::<(), lm_sensors::errors::Error>(())
 ```
 
 The following is an example output of the sample above:
@@ -50,129 +51,129 @@ The following is an example output of the sample above:
 chip: iwlwifi_1-virtual-0 at Virtual device (/sys/class/hwmon/hwmon8)
     temp1: temp1
         temp1_input: N/A
-chip: thinkpad-isa-0000 at ISA adapter (/sys/class/hwmon/hwmon6)
-    fan1: fan1
-        fan1_input: 2488
-    fan2: fan2
-        fan2_input: 2262
-    temp1: CPU
-        temp1_input: 54
-    temp2: GPU
-        temp2_input: 50
-    temp3: temp3
-        temp3_input: 57
-    temp4: temp4
-        temp4_input: 0
-    temp5: temp5
-        temp5_input: 54
-    temp6: temp6
-        temp6_input: 58
-    temp7: temp7
-        temp7_input: 60
-    temp8: temp8
-        temp8_input: 0
-chip: ucsi_source_psy_USBC000:002-isa-0000 at ISA adapter (/sys/class/hwmon/hwmon10)
+chip: pch_cometlake-virtual-0 at Virtual device (/sys/class/hwmon/hwmon6)
+    temp1: temp1
+        temp1_input: 67 C
+chip: ucsi_source_psy_USBC000:001-isa-0000 at ISA adapter (/sys/class/hwmon/hwmon10)
     in0: in0
-        in0_input: 5
-        in0_min: 5
-        in0_max: 5
+        in0_input: 5 V
+        in0_min: 5 V
+        in0_max: 5 V
     curr1: curr1
-        curr1_input: 5
-        curr1_max: 5
+        curr1_input: 0 A
+        curr1_max: 1.5 A
 chip: coretemp-isa-0000 at ISA adapter (/sys/class/hwmon/hwmon4)
     temp1: Package id 0
-        temp1_input: 53
-        temp1_max: 53
-        temp1_crit: 53
-        temp1_crit_alarm: 53
+        temp1_input: 71 C
+        temp1_max: 100 C
+        temp1_crit: 100 C
+        temp1_crit_alarm:
     temp2: Core 0
-        temp2_input: 100
-        temp2_max: 100
-        temp2_crit: 100
-        temp2_crit_alarm: 100
+        temp2_input: 62 C
+        temp2_max: 100 C
+        temp2_crit: 100 C
+        temp2_crit_alarm:
     temp3: Core 1
-        temp3_input: 100
-        temp3_max: 100
-        temp3_crit: 100
-        temp3_crit_alarm: 100
+        temp3_input: 63 C
+        temp3_max: 100 C
+        temp3_crit: 100 C
+        temp3_crit_alarm:
     temp4: Core 2
-        temp4_input: 0
-        temp4_max: 0
-        temp4_crit: 0
-        temp4_crit_alarm: 0
+        temp4_input: 63 C
+        temp4_max: 100 C
+        temp4_crit: 100 C
+        temp4_crit_alarm:
     temp5: Core 3
-        temp5_input: 58
-        temp5_max: 58
-        temp5_crit: 58
-        temp5_crit_alarm: 58
+        temp5_input: 71 C
+        temp5_max: 100 C
+        temp5_crit: 100 C
+        temp5_crit_alarm:
     temp6: Core 4
-        temp6_input: 100
-        temp6_max: 100
-        temp6_crit: 100
-        temp6_crit_alarm: 100
+        temp6_input: 62 C
+        temp6_max: 100 C
+        temp6_crit: 100 C
+        temp6_crit_alarm:
     temp7: Core 5
-        temp7_input: 100
-        temp7_max: 100
-        temp7_crit: 100
-        temp7_crit_alarm: 100
+        temp7_input: 63 C
+        temp7_max: 100 C
+        temp7_crit: 100 C
+        temp7_crit_alarm:
     temp8: Core 6
-        temp8_input: 0
-        temp8_max: 0
-        temp8_crit: 0
-        temp8_crit_alarm: 0
+        temp8_input: 61 C
+        temp8_max: 100 C
+        temp8_crit: 100 C
+        temp8_crit_alarm:
     temp9: Core 7
-        temp9_input: 57
-        temp9_max: 57
-        temp9_crit: 57
-        temp9_crit_alarm: 57
-chip: nvme-pci-5500 at PCI adapter (/sys/class/hwmon/hwmon2)
+        temp9_input: 61 C
+        temp9_max: 100 C
+        temp9_crit: 100 C
+        temp9_crit_alarm:
+chip: nvme-pci-0200 at PCI adapter (/sys/class/hwmon/hwmon2)
     temp1: Composite
-        temp1_input: 46.85
-        temp1_max: 46.85
-        temp1_min: 46.85
-        temp1_crit: 46.85
-        temp1_alarm: 46.85
+        temp1_input: 52.85 C
+        temp1_max: 84.85 C
+        temp1_min: -273.15 C
+        temp1_crit: 84.85 C
+        temp1_alarm:
     temp2: Sensor 1
-        temp2_input: 83.85
-        temp2_max: 83.85
-        temp2_min: 83.85
+        temp2_input: 52.85 C
+        temp2_max: 65261.85 C
+        temp2_min: -273.15 C
     temp3: Sensor 2
-        temp3_input: -273.15
-        temp3_max: -273.15
-        temp3_min: -273.15
+        temp3_input: 45.85 C
+        temp3_max: 65261.85 C
+        temp3_min: -273.15 C
 chip: acpitz-acpi-0 at ACPI interface (/sys/class/hwmon/hwmon0)
     temp1: temp1
-        temp1_input: 54
-        temp1_crit: 54
-chip: ucsi_source_psy_USBC000:001-isa-0000 at ISA adapter (/sys/class/hwmon/hwmon9)
+        temp1_input: 61 C
+        temp1_crit: 128 C
+chip: thinkpad-isa-0000 at ISA adapter (/sys/class/hwmon/hwmon7)
+    fan1: fan1
+        fan1_input: 2657 RPM
+    fan2: fan2
+        fan2_input: 2583 RPM
+    temp1: CPU
+        temp1_input: 61 C
+    temp2: GPU
+        temp2_input: 58 C
+    temp3: temp3
+        temp3_input: 64 C
+    temp4: temp4
+        temp4_input: 1 C
+    temp5: temp5
+        temp5_input: 60 C
+    temp6: temp6
+        temp6_input: 65 C
+    temp7: temp7
+        temp7_input: 68 C
+    temp8: temp8
+        temp8_input: 0 C
+chip: ucsi_source_psy_USBC000:002-isa-0000 at ISA adapter (/sys/class/hwmon/hwmon11)
     in0: in0
-        in0_input: 0
-        in0_min: 0
-        in0_max: 0
+        in0_input: 0 V
+        in0_min: 0 V
+        in0_max: 0 V
     curr1: curr1
-        curr1_input: 0
-        curr1_max: 0
-chip: pch_cometlake-virtual-0 at Virtual device (/sys/class/hwmon/hwmon7)
-    temp1: temp1
-        temp1_input: 58
-chip: BAT0-acpi-0 at ACPI interface (/sys/class/hwmon/hwmon3)
-    in0: in0
-        in0_input: 12.221
-chip: nvme-pci-0200 at PCI adapter (/sys/class/hwmon/hwmon1)
+        curr1_input: 0 A
+        curr1_max: 0 A
+chip: nvme-pci-5500 at PCI adapter (/sys/class/hwmon/hwmon3)
     temp1: Composite
-        temp1_input: 39.85
-        temp1_max: 39.85
-        temp1_min: 39.85
-        temp1_crit: 39.85
-        temp1_alarm: 39.85
+        temp1_input: 51.85 C
+        temp1_max: 83.85 C
+        temp1_min: -273.15 C
+        temp1_crit: 84.85 C
+        temp1_alarm: 
     temp2: Sensor 1
-        temp2_input: 84.85
-        temp2_max: 84.85
-        temp2_min: 84.85
+        temp2_input: 51.85 C
+        temp2_max: 65261.85 C
+        temp2_min: -273.15 C
     temp3: Sensor 2
-        temp3_input: -273.15
-        temp3_max: -273.15
-        temp3_min: -273.15
+        temp3_input: 48.85 C
+        temp3_max: 65261.85 C
+        temp3_min: -273.15 C
+chip: BAT0-acpi-0 at ACPI interface (/sys/class/hwmon/hwmon1)
+    in0: in0
+        in0_input: 12.255 V
 ```
 
 ## Versioning
