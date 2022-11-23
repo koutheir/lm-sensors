@@ -67,7 +67,7 @@ pub trait SharedChip: AsRef<sensors_chip_name> + PartialEq<Self> {
     /// Return the address of this chip, if available.
     fn address(&self) -> Option<c_int> {
         let addr = self.raw_address();
-        (addr != SENSORS_CHIP_NAME_ADDR_ANY).then(|| addr)
+        (addr != SENSORS_CHIP_NAME_ADDR_ANY).then_some(addr)
     }
 
     /// Execute all set statements for this chip.
