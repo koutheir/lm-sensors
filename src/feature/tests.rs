@@ -35,7 +35,7 @@ fn feature_iter() {
     assert!(!feature0.raw_name().unwrap().to_bytes().is_empty());
     let _kind = feature0.raw_kind();
     assert!(!feature0.to_string().is_empty());
-    assert!(!format!("{:?}", feature0).is_empty());
+    assert!(!format!("{feature0:?}").is_empty());
 
     assert!(!feature0.label().unwrap().is_empty());
     assert!(!feature0.name().unwrap().unwrap().is_empty());

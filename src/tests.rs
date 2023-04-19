@@ -114,14 +114,14 @@ fn list_all() {
         // Print all features of the current chip.
         for feature in chip.feature_iter() {
             let name = feature.name().transpose().unwrap().unwrap_or("N/A");
-            println!("    {}: {}", name, feature);
+            println!("    {name}: {feature}");
 
             // Print all sub-features of the current chip feature.
             for sub_feature in feature.sub_feature_iter() {
                 if let Ok(value) = sub_feature.value() {
-                    println!("        {}: {}", sub_feature, value);
+                    println!("        {sub_feature}: {value}");
                 } else {
-                    println!("        {}: N/A", sub_feature);
+                    println!("        {sub_feature}: N/A");
                 }
             }
         }

@@ -647,10 +647,10 @@ impl fmt::Display for Value {
             }
 
             Self::FanDivisor(value) | Self::FanPulses(value) | Self::TemperatureOffset(value) => {
-                write!(f, "{}", value)
+                write!(f, "{value}")
             }
 
-            Self::TemperatureType(value) => write!(f, "{}", value),
+            Self::TemperatureType(value) => write!(f, "{value}"),
 
             Self::VoltageInput(value)
             | Self::VoltageMinimum(value)
@@ -1053,7 +1053,7 @@ impl fmt::Display for Kind {
             Self::BeepEnable => "BeepEnable",
             Self::Unknown => "Unknown",
         };
-        write!(f, "{}", name)
+        write!(f, "{name}")
     }
 }
 

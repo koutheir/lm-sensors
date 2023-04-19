@@ -121,16 +121,14 @@ impl Listener for DefaultListener {
             );
         } else {
             eprintln!(
-                "[ERROR] lm-sensors configuration: {}, at line {}.",
-                error, line_number
+                "[ERROR] lm-sensors configuration: {error}, at line {line_number}."
             );
         }
     }
 
     fn on_lm_sensors_fatal_error(&self, error: &str, procedure: &str) {
         eprintln!(
-            "[FATAL] lm-sensors: {}, at procedure '{}'.",
-            error, procedure
+            "[FATAL] lm-sensors: {error}, at procedure '{procedure}'."
         );
     }
 }

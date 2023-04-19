@@ -311,7 +311,7 @@ impl fmt::Display for Number {
         match *self {
             Number::Any => write!(f, "Any"),
             Number::Ignore => write!(f, "Ignore"),
-            Number::Number(n) => write!(f, "{}", n),
+            Number::Number(n) => write!(f, "{n}"),
         }
     }
 }
