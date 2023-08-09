@@ -35,7 +35,7 @@ pub enum Error {
         source: io::Error,
     },
 
-    #[error("Path {0} is not valid UTF-8")]
+    #[error("path {0} is not valid UTF-8")]
     PathIsNotUTF8(PathBuf),
 
     #[error(transparent)]
