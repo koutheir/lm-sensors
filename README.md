@@ -10,6 +10,13 @@ in Linux.
 This crate is Linux-specific. Building it for non-Linux platforms, or for
 the Linux kernel, results in an empty crate.
 
+This crate links to [`libsensors`](https://github.com/lm-sensors/lm-sensors), and requires it to be
+installed.
+Linking to `libsensors` happens transitively through depending on the
+[`sensors-sys`](https://crates.io/crates/sensors-sys) crate.
+The [`sensors-sys` crate documentation](https://docs.rs/sensors-sys/) illustrates, among other things,
+how to install `libsensors` and control aspects of this linking.
+
 ## Listing all available sensors
 
 ```rust
