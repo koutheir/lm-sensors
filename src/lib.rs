@@ -1,5 +1,8 @@
 #![doc = include_str!("../README.md")]
-#![warn(missing_docs)]
+#![warn(
+    unsafe_op_in_unsafe_fn,
+    missing_docs,
+)]
 /*
 #![warn(clippy::all, clippy::pedantic, clippy::restriction)]
 #![allow(

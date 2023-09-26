@@ -2,6 +2,18 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.7] - 2023-09-26
+
+### Added
+
+- Documentation on installing `libsensors`.
+
+Thank you very much, *Carter*.
+
+### Changed
+
+- Updated dependencies.
+
 ## [0.1.6] - 2023-08-09
 
 ### Changed

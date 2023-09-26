@@ -55,9 +55,11 @@ impl CallBacks {
     pub(crate) unsafe fn set(&self) {
         atomic::fence(atomic::Ordering::Acquire);
 
-        sensors_parse_error = self.parse_error;
-        sensors_parse_error_wfn = self.parse_error_wfn;
-        sensors_fatal_error = self.fatal_error;
+        unsafe {
+            sensors_parse_error = self.parse_error;
+            sensors_parse_error_wfn = self.parse_error_wfn;
+            sensors_fatal_error = self.fatal_error;
+        }
 
         atomic::fence(atomic::Ordering::Release);
     }
@@ -65,15 +67,18 @@ impl CallBacks {
     pub(crate) unsafe fn replace(self) -> Self {
         atomic::fence(atomic::Ordering::Acquire);
 
-        let previous = Self {
-            parse_error: sensors_parse_error,
-            parse_error_wfn: sensors_parse_error_wfn,
-            fatal_error: sensors_fatal_error,
-        };
+        let previous;
+        unsafe {
+            previous = Self {
+                parse_error: sensors_parse_error,
+                parse_error_wfn: sensors_parse_error_wfn,
+                fatal_error: sensors_fatal_error,
+            };
 
-        sensors_parse_error = self.parse_error;
-        sensors_parse_error_wfn = self.parse_error_wfn;
-        sensors_fatal_error = self.fatal_error;
+            sensors_parse_error = self.parse_error;
+            sensors_parse_error_wfn = self.parse_error_wfn;
+            sensors_fatal_error = self.fatal_error;
+        }
 
         atomic::fence(atomic::Ordering::Release);
 
