@@ -1,14 +1,16 @@
 //! Errors.
 
+use core::sync::atomic;
+use core::sync::atomic::AtomicPtr;
+use core::{cmp, fmt, ptr};
 use std::os::raw::{c_char, c_int};
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{self, AtomicPtr};
-use std::{cmp, fmt, io, process, ptr};
+use std::{io, process};
 
 use crate::utils::*;
 
 /// Result of a fallible function.
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<T> = core::result::Result<T, Error>;
 
 /// Error of a failed function.
 #[allow(missing_docs)] // Enum variant names are self-explanatory.
@@ -48,10 +50,10 @@ pub enum Error {
     InvalidUTF8CString(#[from] std::ffi::IntoStringError),
 
     #[error(transparent)]
-    InvalidUTF8(#[from] std::str::Utf8Error),
+    InvalidUTF8(#[from] core::str::Utf8Error),
 
     #[error(transparent)]
-    NotInteger(#[from] std::num::ParseIntError),
+    NotInteger(#[from] core::num::ParseIntError),
 }
 
 impl Error {
@@ -72,12 +74,10 @@ impl Error {
     }
 
     pub(crate) fn from_lm_sensors(operation: &'static str, number: c_int) -> Self {
-        // SAFETY:
-        // We assume `sensors_strerror()` can be called anytime,
+        // Safety: we assume `sensors_strerror()` can be called anytime,
         // including before `sensors_init()` and after `sensors_cleanup()`.
-        let description =
-            lossy_string_from_c_str(unsafe { sensors_sys::sensors_strerror(number) }, "")
-                .into_owned();
+        let description = unsafe { sensors_sys::sensors_strerror(number) };
+        let description = lossy_string_from_c_str(description, "").into_owned();
 
         Error::LMSensors {
             operation,
@@ -120,16 +120,12 @@ impl Listener for DefaultListener {
                 line_number
             );
         } else {
-            eprintln!(
-                "[ERROR] lm-sensors configuration: {error}, at line {line_number}."
-            );
+            eprintln!("[ERROR] lm-sensors configuration: {error}, at line {line_number}.");
         }
     }
 
     fn on_lm_sensors_fatal_error(&self, error: &str, procedure: &str) {
-        eprintln!(
-            "[FATAL] lm-sensors: {error}, at procedure '{procedure}'."
-        );
+        eprintln!("[FATAL] lm-sensors: {error}, at procedure '{procedure}'.");
     }
 }
 

@@ -1,15 +1,16 @@
 #[cfg(test)]
 mod tests;
 
+use core::ffi::CStr;
+use core::mem::MaybeUninit;
+use core::ptr::NonNull;
+use core::sync::atomic;
 use std::borrow::Cow;
-use std::ffi::{CStr, CString, OsStr};
+use std::ffi::{CString, OsStr};
 use std::fs::File;
 use std::io;
-use std::mem::MaybeUninit;
 use std::os::raw::{c_char, c_int};
 use std::path::Path;
-use std::ptr::NonNull;
-use std::sync::atomic;
 use std::sync::{Mutex, Once};
 
 use sensors_sys::*;
@@ -92,6 +93,7 @@ pub(crate) struct LibCFileStream(NonNull<libc::FILE>);
 impl LibCFileStream {
     pub(crate) fn from_path(path: &Path) -> Result<Self> {
         let c_config_file = c_string_from_path(path)?;
+        // Safety: fopen() is assumed to be safe.
         let fp = unsafe { libc::fopen(c_config_file.as_ptr(), "r\0".as_ptr().cast()) };
 
         let result = NonNull::new(fp).map(Self).ok_or_else(|| {
@@ -121,6 +123,7 @@ impl LibCFileStream {
         }
 
         let fd = file.into_raw_fd();
+        // Safety: fdopen() is assumed to be safe.
         let fp = unsafe { libc::fdopen(fd, "r\0".as_ptr().cast()) };
 
         NonNull::new(fp)
@@ -130,15 +133,18 @@ impl LibCFileStream {
 
     fn refers_to_dir(&self, path: &Path) -> Result<bool> {
         let mut st = MaybeUninit::zeroed();
+        // Safety: fileno() is assumed to be safe.
         if unsafe { libc::fstat(libc::fileno(self.0.as_ptr()), st.as_mut_ptr()) } == -1 {
             let err = io::Error::last_os_error();
             Err(Error::from_io_path("fstat()", path, err))
         } else {
+            // Safety: fstat() initialized `st`.
             let st = unsafe { st.assume_init() };
             Ok((st.st_mode & libc::S_IFMT) == libc::S_IFDIR)
         }
     }
 
+    #[must_use]
     pub(crate) fn as_mut_ptr(&self) -> *mut libc::FILE {
         self.0.as_ptr()
     }
@@ -146,6 +152,7 @@ impl LibCFileStream {
 
 impl Drop for LibCFileStream {
     fn drop(&mut self) {
+        // Safety: fclose() is assumed to be safe.
         unsafe { libc::fclose(self.0.as_ptr()) };
     }
 }
@@ -154,6 +161,7 @@ pub(crate) fn lossy_string_from_c_str(s: *const c_char, default: &str) -> Cow<st
     if s.is_null() {
         Cow::Borrowed(default)
     } else {
+        // Safety: if `s` is not null, then it is assumed to be a null-terminated string.
         unsafe { CStr::from_ptr(s) }.to_string_lossy()
     }
 }
@@ -162,6 +170,7 @@ pub(crate) fn str_from_c_str<'t>(s: *const c_char) -> Option<&'t str> {
     if s.is_null() {
         None
     } else {
+        // Safety: if `s` is not null, then it is assumed to be a null-terminated string.
         unsafe { CStr::from_ptr(s) }.to_str().ok()
     }
 }
@@ -173,6 +182,7 @@ pub(crate) fn path_from_c_str<'t>(s: *const c_char) -> Option<&'t Path> {
     if s.is_null() {
         None
     } else {
+        // Safety: if `s` is not null, then it is assumed to be a null-terminated string.
         let c_str = unsafe { CStr::from_ptr(s) };
         Some(Path::new(OsStr::from_bytes(c_str.to_bytes())))
     }

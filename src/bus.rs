@@ -3,32 +3,39 @@
 #[cfg(test)]
 mod tests;
 
-use std::ffi::CStr;
+use core::ffi::CStr;
+use core::fmt;
+use std::io;
 use std::os::raw::{c_int, c_short};
-use std::{fmt, io};
 
 use sensors_sys::*;
 
 use crate::errors::{Error, Result};
 use crate::utils::api_access_lock;
-use crate::{Bus, BusMut, BusRef};
 
-/// Functions of a bus available without exclusive access to the bus.
-pub trait SharedBus: AsRef<sensors_bus_id> {
+/// Bus connection of some [`Kind`], *e.g.,* PCI.
+///
+/// [`Kind`]: crate::bus::Kind
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Bus(pub(crate) sensors_bus_id);
+
+impl Bus {
     /// Return the adapter name of this bus.
     ///
     /// If it could not be found, it returns an error.
-    fn name(&self) -> Result<&str> {
+    pub fn name(&self) -> Result<&str> {
         self.raw_name()?.to_str().map_err(Into::into)
     }
 
     /// Return the bus type.
-    fn kind(&self) -> Option<Kind> {
+    #[must_use]
+    pub fn kind(&self) -> Option<Kind> {
         Kind::from_raw(self.raw_kind())
     }
 
     /// Return the bus number.
-    fn number(&self) -> Number {
+    #[must_use]
+    pub fn number(&self) -> Number {
         self.raw_number().into()
     }
 
@@ -37,54 +44,55 @@ pub trait SharedBus: AsRef<sensors_bus_id> {
     /// If it could not be found, it returns an error.
     ///
     /// See: [`sensors_get_adapter_name`].
-    fn raw_name(&self) -> Result<&CStr> {
+    pub fn raw_name(&self) -> Result<&CStr> {
         let name = api_access_lock()
             .lock()
-            .map(|_guard| unsafe { sensors_get_adapter_name(self.as_ref()) })?;
+            // Safety: this is assumed to be safe.
+            .map(|_guard| unsafe { sensors_get_adapter_name(&self.0) })?;
 
         (!name.is_null())
+            // Safety: sensors_get_adapter_name() returned a null-terminated string.
             .then(|| unsafe { CStr::from_ptr(name) })
             .ok_or_else(|| {
                 let err = io::ErrorKind::NotFound.into();
-                Error::from_io("sensors_get_subfeature", err)
+                Error::from_io("sensors_get_adapter_name", err)
             })
     }
 
     /// Return one of `SENSORS_BUS_TYPE_*` values,
     /// *e.g.*, [`SENSORS_BUS_TYPE_ANY`].
-    fn raw_kind(&self) -> c_short {
-        self.as_ref().type_
+    #[must_use]
+    pub fn raw_kind(&self) -> c_short {
+        self.0.type_
     }
 
     /// Return a number, or one of `SENSORS_BUS_NR_*` values,
     /// *e.g.*, [`SENSORS_BUS_NR_ANY`].
-    fn raw_number(&self) -> c_short {
-        self.as_ref().nr
+    #[must_use]
+    pub fn raw_number(&self) -> c_short {
+        self.0.nr
     }
-}
 
-/// Functions of a bus available only with exclusive access to the bus.
-pub trait ExclusiveBus: AsMut<sensors_bus_id> {
     /// Set the bus type.
-    fn set_kind(&mut self, kind: Kind) {
+    pub fn set_kind(&mut self, kind: Kind) {
         self.set_raw_kind(c_short::from(kind));
     }
 
     /// Set the bus number.
-    fn set_number(&mut self, number: Number) {
+    pub fn set_number(&mut self, number: Number) {
         self.set_raw_number(number.into());
     }
 
     /// Set the bus type to one of `SENSORS_BUS_TYPE_*` values,
     /// *e.g.*, [`SENSORS_BUS_TYPE_PCI`].
-    fn set_raw_kind(&mut self, kind: c_short) {
-        self.as_mut().type_ = kind;
+    pub fn set_raw_kind(&mut self, kind: c_short) {
+        self.0.type_ = kind;
     }
 
     /// Set the bus number to one of `SENSORS_BUS_NR_*` values
     /// (*e.g.*, [`SENSORS_BUS_NR_ANY`]), or to a specific number.
-    fn set_raw_number(&mut self, number: c_short) {
-        self.as_mut().nr = number;
+    pub fn set_raw_number(&mut self, number: c_short) {
+        self.0.nr = number;
     }
 }
 
@@ -100,18 +108,6 @@ impl AsRef<sensors_bus_id> for Bus {
     }
 }
 
-impl<'a> PartialEq<BusRef<'a>> for Bus {
-    fn eq(&self, other: &BusRef<'a>) -> bool {
-        self.0 == *other.0
-    }
-}
-
-impl<'a> PartialEq<BusMut<'a>> for Bus {
-    fn eq(&self, other: &BusMut<'a>) -> bool {
-        self.0 == *other.0
-    }
-}
-
 impl fmt::Display for Bus {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Ok(name) = self.raw_name() {
@@ -121,76 +117,6 @@ impl fmt::Display for Bus {
         }
     }
 }
-
-impl SharedBus for Bus {}
-impl ExclusiveBus for Bus {}
-
-impl<'a> AsRef<sensors_bus_id> for BusRef<'a> {
-    fn as_ref(&self) -> &sensors_bus_id {
-        self.0
-    }
-}
-
-impl<'a> PartialEq<Bus> for BusRef<'a> {
-    fn eq(&self, other: &Bus) -> bool {
-        *self.0 == other.0
-    }
-}
-
-impl<'a> PartialEq<BusMut<'_>> for BusRef<'a> {
-    fn eq(&self, other: &BusMut<'_>) -> bool {
-        *self.0 == *other.0
-    }
-}
-
-impl<'a> fmt::Display for BusRef<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Ok(name) = self.raw_name() {
-            write!(f, "{}", name.to_string_lossy())
-        } else {
-            write!(f, "\u{fffd}")
-        }
-    }
-}
-
-impl<'a> SharedBus for BusRef<'a> {}
-
-impl<'a> AsMut<sensors_bus_id> for BusMut<'a> {
-    fn as_mut(&mut self) -> &mut sensors_bus_id {
-        self.0
-    }
-}
-
-impl<'a> AsRef<sensors_bus_id> for BusMut<'a> {
-    fn as_ref(&self) -> &sensors_bus_id {
-        self.0
-    }
-}
-
-impl<'a> PartialEq<Bus> for BusMut<'a> {
-    fn eq(&self, other: &Bus) -> bool {
-        *self.0 == other.0
-    }
-}
-
-impl<'a> PartialEq<BusRef<'_>> for BusMut<'a> {
-    fn eq(&self, other: &BusRef<'_>) -> bool {
-        *self.0 == *other.0
-    }
-}
-
-impl<'a> fmt::Display for BusMut<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Ok(name) = self.raw_name() {
-            write!(f, "{}", name.to_string_lossy())
-        } else {
-            write!(f, "\u{fffd}")
-        }
-    }
-}
-
-impl<'a> ExclusiveBus for BusMut<'a> {}
-impl<'a> SharedBus for BusMut<'a> {}
 
 /// Type of a [`Bus`].
 #[repr(i16)]

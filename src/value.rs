@@ -3,13 +3,118 @@
 #[cfg(test)]
 mod tests;
 
+use core::fmt;
+use std::io;
 use std::os::raw::{c_int, c_uint};
-use std::{fmt, io};
 
 use sensors_sys::sensors_subfeature_type::*;
 
 use crate::errors::{Error, Result};
-use crate::Value;
+
+/// Value reported by a sensor or set for an actuator,
+/// controlled by a [`SubFeatureRef`] instance.
+#[allow(missing_docs)]
+#[derive(Debug, Copy, Clone, PartialEq)]
+#[non_exhaustive]
+pub enum Value {
+    VoltageInput(f64),
+    VoltageMinimum(f64),
+    VoltageMaximum(f64),
+    VoltageLCritical(f64),
+    VoltageCritical(f64),
+    VoltageAverage(f64),
+    VoltageLowest(f64),
+    VoltageHighest(f64),
+    VoltageAlarm(bool),
+    VoltageMinimumAlarm(bool),
+    VoltageMaximumAlarm(bool),
+    VoltageBeep(bool),
+    VoltageLCriticalAlarm(bool),
+    VoltageCriticalAlarm(bool),
+
+    FanInput(f64),
+    FanMinimum(f64),
+    FanMaximum(f64),
+    FanAlarm(bool),
+    FanFault(bool),
+    FanDivisor(f64),
+    FanBeep(bool),
+    FanPulses(f64),
+    FanMinimumAlarm(bool),
+    FanMaximumAlarm(bool),
+
+    TemperatureInput(f64),
+    TemperatureMaximum(f64),
+    TemperatureMaximumHysteresis(f64),
+    TemperatureMinimum(f64),
+    TemperatureCritical(f64),
+    TemperatureCriticalHysteresis(f64),
+    TemperatureLCritical(f64),
+    TemperatureEmergency(f64),
+    TemperatureEmergencyHysteresis(f64),
+    TemperatureLowest(f64),
+    TemperatureHighest(f64),
+    TemperatureMinimumHysteresis(f64),
+    TemperatureLCriticalHysteresis(f64),
+    TemperatureAlarm(bool),
+    TemperatureMaximumAlarm(bool),
+    TemperatureMinimumAlarm(bool),
+    TemperatureCriticalAlarm(bool),
+    TemperatureFault(bool),
+    TemperatureType(TemperatureSensorKind),
+    TemperatureOffset(f64),
+    TemperatureBeep(bool),
+    TemperatureEmergencyAlarm(bool),
+    TemperatureLCriticalAlarm(bool),
+
+    PowerAverage(f64),
+    PowerAverageHighest(f64),
+    PowerAverageLowest(f64),
+    PowerInput(f64),
+    PowerInputHighest(f64),
+    PowerInputLowest(f64),
+    PowerCap(f64),
+    PowerCapHysteresis(f64),
+    PowerMaximum(f64),
+    PowerCritical(f64),
+    PowerMinimum(f64),
+    PowerLCritical(f64),
+    PowerAverageInterval(f64),
+    PowerAlarm(bool),
+    PowerCapAlarm(bool),
+    PowerMaximumAlarm(bool),
+    PowerCriticalAlarm(bool),
+    PowerMinimumAlarm(bool),
+    PowerLCriticalAlarm(bool),
+
+    EnergyInput(f64),
+
+    CurrentInput(f64),
+    CurrentMinimum(f64),
+    CurrentMaximum(f64),
+    CurrentLCritical(f64),
+    CurrentCritical(f64),
+    CurrentAverage(f64),
+    CurrentLowest(f64),
+    CurrentHighest(f64),
+    CurrentAlarm(bool),
+    CurrentMinimumAlarm(bool),
+    CurrentMaximumAlarm(bool),
+    CurrentBeep(bool),
+    CurrentLCriticalAlarm(bool),
+    CurrentCriticalAlarm(bool),
+
+    HumidityInput(f64),
+
+    VoltageID(f64),
+
+    IntrusionAlarm(bool),
+    IntrusionBeep(bool),
+
+    BeepEnable(bool),
+
+    Unknown { kind: Kind, value: f64 },
+}
 
 impl Value {
     /// Return an instance of the given type and value.
@@ -566,8 +671,8 @@ impl Value {
             | Self::IntrusionBeep(value)
             // Beep
             | Self::BeepEnable(value) => {
-                let result = if *value { 1.0 } else { 0.0 };
-                *value = new_value != 0.0;
+                let result: f64 = if *value { 1.0 } else { 0.0 };
+                *value = new_value != 0.0_f64;
                 Ok(result)
             },
 
@@ -1124,6 +1229,13 @@ impl TemperatureSensorKind {
     /// Return an instance given a raw value, if it is valid.
     #[must_use]
     pub fn from_raw(value: f64) -> Option<Self> {
+        if value.is_nan() {
+            return None;
+        } else if value.is_infinite() {
+            return value.is_sign_positive().then_some(Self::Thermistor);
+        }
+
+        // Safety: `value` is finite.
         let int_value: i64 = unsafe { value.round().to_int_unchecked() };
         if int_value < 0 {
             None

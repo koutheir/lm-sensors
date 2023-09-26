@@ -1,8 +1,5 @@
 #![doc = include_str!("../README.md")]
-#![warn(
-    unsafe_op_in_unsafe_fn,
-    missing_docs,
-)]
+#![warn(unsafe_op_in_unsafe_fn, missing_docs)]
 /*
 #![warn(clippy::all, clippy::pedantic, clippy::restriction)]
 #![allow(
@@ -11,7 +8,13 @@
     clippy::missing_inline_in_public_items,
     clippy::implicit_return,
     clippy::missing_errors_doc,
-    clippy::module_name_repetitions
+    clippy::module_name_repetitions,
+    clippy::question_mark_used,
+    clippy::single_char_lifetime_names,
+    clippy::min_ident_chars,
+    clippy::single_call_fn,
+    clippy::too_many_lines,
+    clippy::print_stderr
 )]
 */
 
@@ -26,188 +29,31 @@ pub mod value;
 #[cfg(test)]
 mod tests;
 
-use std::ffi::CStr;
+use core::ffi::CStr;
+use core::marker::PhantomData;
+use core::ptr;
+use core::sync::atomic;
+use core::sync::atomic::AtomicBool;
 use std::fs::File;
-use std::marker::PhantomData;
+use std::io;
 use std::os::raw::c_short;
 use std::path::PathBuf;
-use std::sync::atomic;
-use std::sync::atomic::AtomicBool;
-use std::{io, ptr};
 
 use sensors_sys::*;
 
-use crate::errors::{Error, Reporter, Result};
+use crate::errors::{Error, Listener, Reporter, Result};
 use crate::utils::{api_access_lock, LibCFileStream};
 
-pub mod prelude {
-    //! Easily import crate traits.
-
-    pub use crate::bus::{ExclusiveBus, SharedBus};
-    pub use crate::chip::SharedChip;
-}
-
-/// Bus connection of some [`Kind`], *e.g.,* PCI.
-///
-/// [`Kind`]: crate::bus::Kind
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Bus(pub(crate) sensors_bus_id);
-
-/// Shared reference to a bus connection of some [`Kind`], *e.g.,* PCI.
-///
-/// [`Kind`]: crate::bus::Kind
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct BusRef<'a>(pub(crate) &'a sensors_bus_id);
-
-/// Exclusive reference to a bus connection of some [`Kind`], *e.g.,* PCI.
-///
-/// [`Kind`]: crate::bus::Kind
-#[derive(Debug, PartialEq, Eq)]
-pub struct BusMut<'a>(pub(crate) &'a mut sensors_bus_id);
-
-/// Shared reference to a chip connected to sensors or actuators.
-#[derive(Debug, Clone, Copy, Eq)]
-pub struct ChipRef<'a>(pub(crate) &'a sensors_chip_name);
-
-/// Chip connected to sensors or actuators.
-#[derive(Debug, PartialEq, Eq)]
-pub struct Chip<'a> {
-    pub(crate) raw: sensors_chip_name,
-    pub(crate) _phantom: &'a PhantomData<crate::LMSensors>,
-}
-
-/// Shared reference to a feature of some [`Kind`] (*e.g.,* temperature),
-/// provided by a [`Chip`].
-///
-/// [`Kind`]: crate::feature::Kind
-#[derive(Debug, Clone, Copy, Eq)]
-pub struct FeatureRef<'a> {
-    pub(crate) chip: ChipRef<'a>,
-    pub(crate) raw: &'a sensors_feature,
-}
-
-/// Shared reference to a sub-feature of some [`Kind`] (*e.g.,* temperature input),
-/// provided by a [`Chip`].
-///
-/// [`Kind`]: crate::value::Kind
-#[derive(Debug, Clone, Copy, Eq)]
-pub struct SubFeatureRef<'a> {
-    pub(crate) feature: FeatureRef<'a>,
-    pub(crate) raw: &'a sensors_subfeature,
-}
-
-/// Value reported by a sensor or set for an actuator,
-/// controlled by a [`SubFeatureRef`] instance.
-#[allow(missing_docs)]
-#[derive(Debug, Copy, Clone, PartialEq)]
-#[non_exhaustive]
-pub enum Value {
-    VoltageInput(f64),
-    VoltageMinimum(f64),
-    VoltageMaximum(f64),
-    VoltageLCritical(f64),
-    VoltageCritical(f64),
-    VoltageAverage(f64),
-    VoltageLowest(f64),
-    VoltageHighest(f64),
-    VoltageAlarm(bool),
-    VoltageMinimumAlarm(bool),
-    VoltageMaximumAlarm(bool),
-    VoltageBeep(bool),
-    VoltageLCriticalAlarm(bool),
-    VoltageCriticalAlarm(bool),
-
-    FanInput(f64),
-    FanMinimum(f64),
-    FanMaximum(f64),
-    FanAlarm(bool),
-    FanFault(bool),
-    FanDivisor(f64),
-    FanBeep(bool),
-    FanPulses(f64),
-    FanMinimumAlarm(bool),
-    FanMaximumAlarm(bool),
-
-    TemperatureInput(f64),
-    TemperatureMaximum(f64),
-    TemperatureMaximumHysteresis(f64),
-    TemperatureMinimum(f64),
-    TemperatureCritical(f64),
-    TemperatureCriticalHysteresis(f64),
-    TemperatureLCritical(f64),
-    TemperatureEmergency(f64),
-    TemperatureEmergencyHysteresis(f64),
-    TemperatureLowest(f64),
-    TemperatureHighest(f64),
-    TemperatureMinimumHysteresis(f64),
-    TemperatureLCriticalHysteresis(f64),
-    TemperatureAlarm(bool),
-    TemperatureMaximumAlarm(bool),
-    TemperatureMinimumAlarm(bool),
-    TemperatureCriticalAlarm(bool),
-    TemperatureFault(bool),
-    TemperatureType(crate::value::TemperatureSensorKind),
-    TemperatureOffset(f64),
-    TemperatureBeep(bool),
-    TemperatureEmergencyAlarm(bool),
-    TemperatureLCriticalAlarm(bool),
-
-    PowerAverage(f64),
-    PowerAverageHighest(f64),
-    PowerAverageLowest(f64),
-    PowerInput(f64),
-    PowerInputHighest(f64),
-    PowerInputLowest(f64),
-    PowerCap(f64),
-    PowerCapHysteresis(f64),
-    PowerMaximum(f64),
-    PowerCritical(f64),
-    PowerMinimum(f64),
-    PowerLCritical(f64),
-    PowerAverageInterval(f64),
-    PowerAlarm(bool),
-    PowerCapAlarm(bool),
-    PowerMaximumAlarm(bool),
-    PowerCriticalAlarm(bool),
-    PowerMinimumAlarm(bool),
-    PowerLCriticalAlarm(bool),
-
-    EnergyInput(f64),
-
-    CurrentInput(f64),
-    CurrentMinimum(f64),
-    CurrentMaximum(f64),
-    CurrentLCritical(f64),
-    CurrentCritical(f64),
-    CurrentAverage(f64),
-    CurrentLowest(f64),
-    CurrentHighest(f64),
-    CurrentAlarm(bool),
-    CurrentMinimumAlarm(bool),
-    CurrentMaximumAlarm(bool),
-    CurrentBeep(bool),
-    CurrentLCriticalAlarm(bool),
-    CurrentCriticalAlarm(bool),
-
-    HumidityInput(f64),
-
-    VoltageID(f64),
-
-    IntrusionAlarm(bool),
-    IntrusionBeep(bool),
-
-    BeepEnable(bool),
-
-    Unknown {
-        kind: crate::value::Kind,
-        value: f64,
-    },
-}
+pub use crate::bus::Bus;
+pub use crate::chip::{Chip, ChipRef};
+pub use crate::feature::FeatureRef;
+pub use crate::sub_feature::SubFeatureRef;
+pub use crate::value::Value;
 
 /// LM sensors library initializer, producing an instance of [`LMSensors`].
 #[derive(Debug, Default)]
 pub struct Initializer {
-    error_listener: Option<Box<dyn crate::errors::Listener>>,
+    error_listener: Option<Box<dyn Listener>>,
     config_path: Option<PathBuf>,
     config_file: Option<File>,
 }
@@ -299,7 +145,7 @@ impl Initializer {
     ```
     */
     #[must_use]
-    pub fn error_listener(self, listener: Box<dyn crate::errors::Listener>) -> Self {
+    pub fn error_listener(self, listener: Box<dyn Listener>) -> Self {
         Self {
             error_listener: Some(listener),
             config_path: self.config_path,
@@ -332,6 +178,7 @@ impl Initializer {
         let result = LMSensors::new(config_file_fp, error_listener);
 
         if result.is_err() && !error_listener.is_null() {
+            // Safety: error_listener was allocated locally and is now unused.
             drop(unsafe { Box::from_raw(error_listener) });
         }
         result
@@ -351,8 +198,11 @@ impl LMSensors {
     /// Returns the raw version of the LM sensors library, if available.
     #[must_use]
     pub fn raw_version(&self) -> Option<&CStr> {
-        let p = unsafe { libsensors_version };
-        (!p.is_null()).then(|| unsafe { CStr::from_ptr(p) })
+        // Safety: `libsensors_version` has already been initialized, and is now constant.
+        let version = unsafe { libsensors_version };
+        // Safety: if `libsensors_version` is not null, then it is assumed to be a null-terminated
+        // string.
+        (!version.is_null()).then(|| unsafe { CStr::from_ptr(version) })
     }
 
     /// Return a new instance of [`ChipRef`], given a shared reference
@@ -382,7 +232,7 @@ impl LMSensors {
     }
 
     /// Return a new instance of [`Chip`], given a chip name.
-    pub fn new_chip(&self, name: &str) -> Result<Chip> {
+    pub fn new_chip<'a>(&'a self, name: &str) -> Result<Chip<'a>> {
         Chip::new(name)
     }
 
@@ -402,20 +252,6 @@ impl LMSensors {
             type_: c_short::from(kind),
             nr: number.into(),
         })
-    }
-
-    /// Return a new instance of [`BusRef`], given a shared reference
-    /// to a raw bus.
-    #[must_use]
-    pub fn new_bus_ref<'a>(&'a self, raw: &'a sensors_bus_id) -> BusRef<'a> {
-        BusRef(raw)
-    }
-
-    /// Return a new instance of [`BusMut`], given an exclusive reference
-    /// to a raw bus.
-    #[must_use]
-    pub fn new_bus_mut<'a>(&'a self, raw: &'a mut sensors_bus_id) -> BusMut<'a> {
-        BusMut(raw)
     }
 
     /// Return a new default instance of [`Bus`].
@@ -463,7 +299,6 @@ impl LMSensors {
     /// Return an iterator which yields all chips matching the given pattern.
     ///
     /// Specifying `None` for the `match_pattern` yields all chips.
-    #[must_use]
     pub fn chip_iter<'a>(&'a self, match_pattern: Option<ChipRef<'a>>) -> crate::chip::Iter<'a> {
         crate::chip::Iter {
             state: 0,
@@ -474,7 +309,7 @@ impl LMSensors {
     /// See: [`sensors_init`].
     fn new(
         config_file_stream: Option<LibCFileStream>,
-        error_listener: *mut Box<dyn crate::errors::Listener>,
+        error_listener: *mut Box<dyn Listener>,
     ) -> Result<Self> {
         let config_file_fp = config_file_stream
             .as_ref()
@@ -492,6 +327,7 @@ impl LMSensors {
         // We're creating the only instance.
         let error_reporter = Reporter::new(error_listener);
 
+        // Safety: this is assumed to be safe.
         let r = unsafe { sensors_init(config_file_fp.cast()) };
         if r == 0 {
             INITIALIZED.store(true, atomic::Ordering::Release);
@@ -515,7 +351,8 @@ impl Drop for LMSensors {
         let error_listener = api_access_lock()
             .lock()
             .map(|_guard| {
-                unsafe { sensors_cleanup() };
+                // Safety: this is assumed to be safe.
+                unsafe { sensors_cleanup() }
 
                 let error_listener = self.error_reporter.restore();
 
@@ -526,6 +363,7 @@ impl Drop for LMSensors {
             .unwrap_or(ptr::null_mut());
 
         if !error_listener.is_null() {
+            // Safety: error_listener was allocated before and is now unused.
             drop(unsafe { Box::from_raw(error_listener) });
         }
     }

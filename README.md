@@ -20,9 +20,6 @@ how to install `libsensors` and control aspects of this linking.
 ## Listing all available sensors
 
 ```rust
-// Import all useful traits of this crate.
-use lm_sensors::prelude::*;
-
 // Initialize LM sensors library.
 let sensors = lm_sensors::Initializer::default().initialize()?;
 

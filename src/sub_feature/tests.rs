@@ -10,7 +10,7 @@ fn new_sub_feature_ref() {
 
     let mut state = 0;
     let feature = unsafe {
-        sensors_sys::sensors_get_features(chip0.as_ref().as_ref(), &mut state)
+        sensors_sys::sensors_get_features(chip0.raw_ref(), &mut state)
             .as_ref()
             .unwrap()
     };
@@ -18,7 +18,7 @@ fn new_sub_feature_ref() {
 
     let sub_feature = unsafe {
         let mut state = 0;
-        sensors_sys::sensors_get_all_subfeatures(chip0.as_ref().as_ref(), feature, &mut state)
+        sensors_sys::sensors_get_all_subfeatures(chip0.raw_ref(), feature, &mut state)
             .as_ref()
             .unwrap()
     };
@@ -30,8 +30,6 @@ fn new_sub_feature_ref() {
 #[test]
 #[serial]
 fn feature_iter() {
-    use crate::prelude::*;
-
     let s = crate::Initializer::default().initialize().unwrap();
 
     for chip in s.chip_iter(None) {

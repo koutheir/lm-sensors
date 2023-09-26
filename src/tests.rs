@@ -98,8 +98,6 @@ fn init_error_listener() {
 #[test]
 #[serial]
 fn list_all() {
-    use super::prelude::*;
-
     // Initialize LM sensors library.
     let sensors = super::Initializer::default().initialize().unwrap();
 

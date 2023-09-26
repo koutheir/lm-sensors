@@ -7,15 +7,13 @@ use serial_test::serial;
 #[test]
 #[serial]
 fn new() {
-    use crate::prelude::*;
-
     let s = crate::Initializer::default().initialize().unwrap();
     s.new_chip("").unwrap_err();
     let chip0 = s.new_chip("*-isa-*").unwrap();
 
     let mut state = 0;
     let chip1 = unsafe {
-        let chip_ref = sensors_sys::sensors_get_detected_chips(chip0.as_ref().as_ref(), &mut state)
+        let chip_ref = sensors_sys::sensors_get_detected_chips(chip0.raw_ref(), &mut state)
             .as_ref()
             .unwrap();
         s.new_chip_ref(chip_ref)
@@ -34,7 +32,9 @@ fn new() {
         assert_eq!(r, 0);
         s.new_raw_chip(sensors_chip_name.assume_init())
     };
-    chip2.bus_mut().set_raw_number(0); // Workaround for libsensors.
+    let mut b2 = chip2.bus();
+    b2.set_raw_number(0);
+    chip2.set_bus(&b2); // Workaround for libsensors.
     let _name = chip2.name().unwrap();
     assert!(!chip2.to_string().is_empty());
 }
@@ -42,8 +42,6 @@ fn new() {
 #[test]
 #[serial]
 fn raw() {
-    use crate::prelude::*;
-
     let s = crate::Initializer::default().initialize().unwrap();
     let chip0 = s.new_chip("*-isa-*").unwrap();
 
@@ -91,8 +89,6 @@ fn raw() {
 #[test]
 #[serial]
 fn do_chip_sets() {
-    use crate::prelude::*;
-
     let s = crate::Initializer::default().initialize().unwrap();
     let chip0 = s.chip_iter(None).next().unwrap();
     chip0.do_chip_sets().unwrap();
@@ -116,8 +112,6 @@ fn iter() {
 #[test]
 #[serial]
 fn feature_iter() {
-    use crate::prelude::*;
-
     let s = crate::Initializer::default().initialize().unwrap();
 
     let chip0 = s.new_chip("*-isa-*").unwrap();
