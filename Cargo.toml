@@ -3,7 +3,7 @@
 [package]
 name          = "lm-sensors"
 description   = "Hardware monitoring in Linux"
-version       = "0.2.0"
+version       = "0.2.1"
 authors       = ["Koutheir Attouchi <koutheir@gmail.com>"]
 edition       = "2021"
 readme        = "README.md"
@@ -24,8 +24,8 @@ num_enum    = { version = "0.7" }
 
 [dev-dependencies]
 assert_matches = { version = "1.5" }
-serial_test    = { version = "2.0" }
-tempfile       = { version = "3.8" }
+serial_test    = { version = "3.0" }
+tempfile       = { version = "3.9" }
 
 [package.metadata.docs.rs]
 default-target = "x86_64-unknown-linux-gnu"
