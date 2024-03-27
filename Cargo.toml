@@ -3,15 +3,16 @@
 [package]
 name          = "lm-sensors"
 description   = "Hardware monitoring in Linux"
-version       = "0.2.1"
+version       = "0.2.2"
 authors       = ["Koutheir Attouchi <koutheir@gmail.com>"]
 edition       = "2021"
 readme        = "README.md"
 license       = "MIT"
 keywords      = ["ffi", "bindings", "sensor", "linux", "monitoring"]
 categories    = ["api-bindings", "os", "os::linux-apis", "hardware-support"]
-repository    = "https://github.com/koutheir/lm-sensors"
 documentation = "https://docs.rs/lm-sensors"
+homepage      = "https://codeberg.org/koutheir/lm-sensors.git"
+repository    = "https://codeberg.org/koutheir/lm-sensors.git"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -19,13 +20,13 @@ documentation = "https://docs.rs/lm-sensors"
 sensors-sys = { version = "0.2" }
 thiserror   = { version = "1.0" }
 libc        = { version = "0.2" }
-bitflags    = { version = "2.4" }
+bitflags    = { version = "2.5" }
 num_enum    = { version = "0.7" }
 
 [dev-dependencies]
 assert_matches = { version = "1.5" }
 serial_test    = { version = "3.0" }
-tempfile       = { version = "3.9" }
+tempfile       = { version = "3.10" }
 
 [package.metadata.docs.rs]
 default-target = "x86_64-unknown-linux-gnu"
